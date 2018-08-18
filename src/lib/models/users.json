@@ -1,0 +1,34 @@
+{
+  "info": {
+    "name": "Users",
+		"desc": "Users schema"
+  },
+  "attributes": {
+    "username": {
+      "field": "single-line-text",
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "email": {
+      "field": "single-line-text",
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "password": {
+      "field": "single-line-text",
+      "type": "string",
+      "required": true
+    },
+    "role": {
+      "field": "single-line-text",
+      "type": "string",
+      "required": true,
+      "default": "authenticated"
+    }
+  },
+  "options": {
+    "timestamps": true
+  }
+}

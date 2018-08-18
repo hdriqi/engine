@@ -1,0 +1,22 @@
+{
+  "info": {
+    "name": "Projects",
+		"desc": "Users projects"
+  },
+  "attributes": {
+    "name": {
+      "field": "single-line-text",
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "owner": {
+      "field": "single-line-text",
+      "type": "string",
+      "required": true
+    }
+  },
+  "options": {
+    "timestamps": true
+  }
+}
