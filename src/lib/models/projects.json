@@ -1,6 +1,7 @@
 {
   "info": {
-    "name": "Projects",
+		"name": "projects",
+		"id": "name",
 		"desc": "Users projects"
   },
   "attributes": {
@@ -11,9 +12,11 @@
       "unique": true
     },
     "owner": {
-      "field": "single-line-text",
-      "type": "string",
-      "required": true
+      "field": "relation",
+			"type": "string",
+			"ref": "users",
+			"required": true,
+			"autopopulate": true
     }
   },
   "options": {

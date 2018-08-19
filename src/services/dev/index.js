@@ -6,9 +6,9 @@ module.exports = {
 	router(ctx) {
 		const myRouter = express.Router()
 
-		myRouter.use('/:projectId/schemas', schemas(ctx))
+		myRouter.use('/projects/:projectId/schemas', schemas(ctx))
 
-		myRouter.get('/:projectId/roles', async (req, res) => {
+		myRouter.get('/projects/:projectId/roles', async (req, res) => {
 			try {
 				res.json('hehe')
 			} catch (err) {

@@ -1,5 +1,4 @@
 import path from 'path'
-import fs from 'fs'
 
 import express from 'express'
 import bodyParser from 'body-parser'
@@ -9,12 +8,13 @@ import api from './services/api'
 import dev from './services/dev'
 
 import utils from './lib/utils'
-import models from './lib/models'
+import schemas from './lib/models'
 import filtersBuilder from './lib/filtersBuilder'
 
 class Engine {
 	constructor (opts) {
 		this.PORT = opts.PORT
+		this.CORE_DB = 'engine-core'
 		this.app = express()
 		this.USERS_PROJECTS = path.join(__dirname, '..', '..', 'users-projects')
 		this.utils = utils
@@ -29,21 +29,33 @@ class Engine {
 		this.app.use(bodyParser.urlencoded({ extended: false }))
 
 		// Create connection to engine-core
-		Object.assign(this.dbsConnection, {'engine-core': this.utils.db.coreConnection()})
-		Object.assign(this.dbs, {'engine-core': {}})
+		Object.assign(this.dbsConnection, {[this.CORE_DB]: this.utils.db.coreConnection(this)})
+		Object.assign(this.dbs, {[this.CORE_DB]: {}})
 		// Cache core schemas (users and projects)
-		Object.keys(models).forEach((k) => {
-			Object.assign(this.dbs['engine-core'], this.utils.db.buildModel(this, 'engine-core', models[k]))
-		})
+		await Promise.all(Object.keys(schemas).map(async (k) => {
+			const rawSchema = schemas[k]
+			const models = await this.utils.db.buildModel(this, this.CORE_DB, rawSchema)
+			if(!this.dbs[this.CORE_DB].models){
+				this.dbs[this.CORE_DB].models = {}
+			}
+			if(!this.dbs[this.CORE_DB].schemas){
+				this.dbs[this.CORE_DB].schemas = {}
+			}
+			Object.assign(this.dbs[this.CORE_DB].models, {[rawSchema.info.name]: models})
+			Object.assign(this.dbs[this.CORE_DB].schemas, {[rawSchema.info.name]: rawSchema})
+		}))
 
 		// Cache all users project
 		// Read from engine-core -> projects
-		const listOfProjects = fs.readdirSync(this.USERS_PROJECTS)
+		const listOfProjects = await this.utils.handler.find(this, {
+			projectId: this.CORE_DB,
+			schemaId: 'projects'
+		})
 		// Cache all users schemas
 		// Read from schemas.json file
-		await Promise.all(listOfProjects.map(async (projectId) => {
-			Object.assign(this.dbsConnection, {[projectId]: this.utils.db.sideConnection(this.dbsConnection['engine-core'], projectId)})
-			await this.utils.schema.update(this, projectId)
+		await Promise.all(listOfProjects.data.map(async (project) => {
+			Object.assign(this.dbsConnection, {[project.name]: this.utils.db.sideConnection(this.dbsConnection[this.CORE_DB], project.name)})
+			await this.utils.schema.update(this, project.name)
 		}))
 
 		// Routes

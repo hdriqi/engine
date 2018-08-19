@@ -41,7 +41,7 @@ module.exports = {
 			} catch(err) {
 				reject({
 					code: 400,
-					respond: err
+					result: err
 				})
 			}
 		})
@@ -58,7 +58,7 @@ module.exports = {
 			if(!req.body.password) {
 				reject({
 					code: 400,
-					respond: 'Password is required'
+					result: 'Password is required'
 				})
 			}
 			bcrypt.hash(req.body.password, 10)
@@ -72,13 +72,13 @@ module.exports = {
 						.then((result)=>{
 							resolve({
 								code: 201,
-								respond: result._id
+								result: result._id
 							})
 						})
 						.catch((err)=>{
 							reject({
 								code: 400,
-								respond: err
+								result: err
 							})
 						})
 				})
@@ -108,26 +108,26 @@ module.exports = {
 									}, process.env.JWT_SECRET, {expiresIn: '14d'})
 									resolve({
 										code: 200,
-										respond: token
+										result: token
 									})
 								}
 								else reject({
 									code: 400,
-									respond: 'invalid username/password'
+									result: 'invalid username/password'
 								})
 							})
 					}
 					else{
 						reject({
 							code: 400,
-							respond: 'invalid username/password'
+							result: 'invalid username/password'
 						})
 					}
 				})
 				.catch((err)=>{
 					reject({
 						code: 400,
-						respond: err
+						result: err
 					})
 				})
 		})
@@ -138,12 +138,16 @@ module.exports = {
 	 * @param {*} ctx 
 	 * @param {*} req 
 	 */
-	current(ctx, req, dbName) {
+	current(ctx, req) {
 		return new Promise(async (resolve, reject) => {
 			try {
 				const decoded = await this.verify(req)
-				req.params.id = decoded._id
-				let result = await ctx.utils.db.findOne(ctx, req, dbName, 'Users')
+				let result = await ctx.utils.db.findOne(ctx, {
+					projectId: ctx.CORE_DB,
+					schemaId: 'users',
+					objectId: decoded._id,
+					query: req.query
+				})
 				resolve(result)
 			} catch (err) {
 				reject(err)
@@ -165,12 +169,12 @@ module.exports = {
 			if(token) {
 				try {
 					const currentUser = await self.current(ctx, req)
-					await checkAccess(ctx, currentUser.respond, targetEndpoint, targetMethod)
+					await checkAccess(ctx, currentUser.result, targetEndpoint, targetMethod)
 					next()
 				} catch (err) {
 					res.json({
 						code: 401,
-						respond: `No Access`
+						result: `No Access`
 					})
 				}
 			}
@@ -183,7 +187,7 @@ module.exports = {
 				catch(err){
 					res.json({
 						code: 401,
-						respond: `No Access`
+						result: `No Access`
 					})
 				}
 			}

@@ -1,8 +1,8 @@
 module.exports = {
-	async find(ctx, req) {
-		if(ctx.dbs[req.params.projectId] && ctx.dbs[req.params.projectId].models[req.params.schemaId]){
+	async find(ctx, params) {
+		if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId]){
 			try {
-				return await ctx.utils.db.find(ctx, req)
+				return await ctx.utils.db.find(ctx, params)
 			} catch (err) {
 				return err
 			}
@@ -15,10 +15,10 @@ module.exports = {
 		}
 	},
 
-	async findOne(ctx, req) {
-		if(ctx.dbs[req.params.projectId] && ctx.dbs[req.params.projectId].models[req.params.schemaId]){
+	async findOne(ctx, params) {
+		if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId]){
 			try {
-				return await ctx.utils.db.findOne(ctx, req)
+				return await ctx.utils.db.findOne(ctx, params)
 			} catch (err) {
 				return err
 			}
@@ -31,10 +31,27 @@ module.exports = {
 		}
 	},
 
-	async insert(ctx, req) {
-		if(ctx.dbs[req.params.projectId] && ctx.dbs[req.params.projectId].models[req.params.schemaId]){
+	async insert(ctx, params) {
+		if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId]){
 			try {
-				return await ctx.utils.db.insert(ctx, req)
+				return await ctx.utils.db.insert(ctx, params)
+			} catch (err) {
+				// console.log(err)
+				throw new Error(JSON.stringify(err))
+			}
+		}
+		else{
+			return {
+				code: 400,
+				responds: `not found`
+			}
+		}
+	},
+
+	async update(ctx, params) {
+		if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId]){
+			try {
+				return await ctx.utils.db.update(ctx, params)
 			} catch (err) {
 				return err
 			}
@@ -47,26 +64,10 @@ module.exports = {
 		}
 	},
 
-	async update(ctx, req) {
-		if(ctx.dbs[req.params.projectId] && ctx.dbs[req.params.projectId].models[req.params.schemaId]){
+	async delete(ctx, params) {
+		if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId]){
 			try {
-				return await ctx.utils.db.update(ctx, req)
-			} catch (err) {
-				return err
-			}
-		}
-		else{
-			return {
-				code: 400,
-				responds: `not found`
-			}
-		}
-	},
-
-	async delete(ctx, req) {
-		if(ctx.dbs[req.params.projectId] && ctx.dbs[req.params.projectId].models[req.params.schemaId]){
-			try {
-				return await ctx.utils.db.delete(ctx, req)
+				return await ctx.utils.db.delete(ctx, params)
 			} catch (err) {
 				return err
 			}

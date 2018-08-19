@@ -1,6 +1,7 @@
 {
   "info": {
-    "name": "Users",
+		"name": "users",
+		"id": "_id",
 		"desc": "Users schema"
   },
   "attributes": {
@@ -9,7 +10,7 @@
       "type": "string",
       "required": true,
       "unique": true
-    },
+		},
     "email": {
       "field": "single-line-text",
       "type": "string",

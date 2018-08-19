@@ -1,5 +1,4 @@
 import jwt from 'jsonwebtoken'
-import bcrypt from 'bcrypt'
 
 const checkAccess = (ctx, user, targetEndpoint, targetMethod)=> {
 	const access = targetMethod === 'GET' ? 'read' : 'write'
@@ -41,106 +40,8 @@ module.exports = {
 			} catch(err) {
 				reject({
 					code: 400,
-					respond: err
+					result: err
 				})
-			}
-		})
-	},
-
-	/**
-	 * 
-	 * @param {*} ctx 
-	 * @param {*} req 
-	 */
-	register(ctx, req) {
-		return new Promise(async (resolve, reject)=>{
-			let attributes = {}
-			bcrypt.hash(req.body.password, 10)
-				.then((hash)=>{
-					req.body.password = hash
-					Object.keys(ctx.models.Users.attributes).forEach(async (key)=>{
-						Object.assign(attributes, {[key]: req.body[key]})
-					})
-					let newUsers = new ctx.models.Users.model(attributes)
-					newUsers.save()
-						.then((result)=>{
-							resolve({
-								code: 201,
-								respond: result._id
-							})
-						})
-						.catch((err)=>{
-							reject({
-								code: 400,
-								respond: err
-							})
-						})
-				})
-		})
-	},
-
-	/**
-	 * 
-	 * @param {*} ctx 
-	 * @param {*} req 
-	 */
-	login(ctx, req) {
-		return new Promise((resolve, reject)=>{
-			let [idKey, idVal] = req.body.username ? ['username', req.body.username] : ['email', req.body.email]
-
-			ctx.models.Users.model.findOne({
-				[idKey]: idVal
-			})
-				.then((result)=>{
-					if(result){
-						bcrypt.compare(req.body.password, result.password)
-							.then((res)=>{
-								if(res){
-									let token = jwt.sign({
-										_id: result._id,
-										_role: result.role
-									}, process.env.JWT_SECRET, {expiresIn: '14d'})
-									resolve({
-										code: 200,
-										respond: token
-									})
-								}
-								else reject({
-									code: 400,
-									respond: 'invalid username/password'
-								})
-							})
-					}
-					else{
-						reject({
-							code: 400,
-							respond: 'invalid username/password'
-						})
-					}
-				})
-				.catch((err)=>{
-					reject({
-						code: 400,
-						respond: err
-					})
-				})
-		})
-	},
-
-	/**
-	 * 
-	 * @param {*} ctx 
-	 * @param {*} req 
-	 */
-	current(ctx, req) {
-		return new Promise(async (resolve, reject) => {
-			try {
-				const decoded = await this.verify(req)
-				req.params.id = decoded._id
-				let result = await ctx.services.db.findOne(ctx, req, 'Users')
-				resolve(result)
-			} catch (err) {
-				reject(err)
 			}
 		})
 	},
@@ -159,12 +60,12 @@ module.exports = {
 			if(token) {
 				try {
 					const currentUser = await self.current(ctx, req)
-					await checkAccess(ctx, currentUser.respond, targetEndpoint, targetMethod)
+					await checkAccess(ctx, currentUser.result, targetEndpoint, targetMethod)
 					next()
 				} catch (err) {
 					res.json({
 						code: 401,
-						respond: `No Access`
+						result: `No Access`
 					})
 				}
 			}
@@ -177,7 +78,7 @@ module.exports = {
 				catch(err){
 					res.json({
 						code: 401,
-						respond: `No Access`
+						result: `No Access`
 					})
 				}
 			}

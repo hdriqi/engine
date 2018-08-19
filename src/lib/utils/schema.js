@@ -64,7 +64,7 @@ module.exports = {
 					console.log(err)
 					reject({
 						code: 400,
-						responds: err
+						data: err
 					})
 				}
 
@@ -72,14 +72,14 @@ module.exports = {
 
 				resolve({
 					code: 201,
-					responds: `${schemaObj.name} successfully created`
+					data: `${schemaObj.name} successfully created`
 				})
 			}
 			else{
 				console.log('Schema Exist')
 				reject({
 					code: 400,
-					responds: 'Schema already exist'
+					data: 'Schema already exist'
 				})
 			}
 		})
@@ -103,7 +103,7 @@ module.exports = {
 				} catch (err) {
 					reject({
 						code: 400,
-						responds: err
+						data: err
 					})
 				}
 
@@ -111,14 +111,14 @@ module.exports = {
 
 				resolve({
 					code: 200,
-					responds: `${schemaObj.name} successfully updated`
+					data: `${schemaObj.name} successfully updated`
 				})
 			}
 			else{       
 				console.log('Schema not Exist')
 				reject({
 					code: 400,
-					responds: 'Schema not exist'
+					data: 'Schema not exist'
 				})
 			}
 		})
@@ -128,7 +128,7 @@ module.exports = {
 	 * @param  {Engine} ctx
 	 * @param  {Object} schemaObj
 	 */
-	remove(ctx, projectId, schemaObj) {
+	delete(ctx, projectId, schemaObj) {
 		const self = this
 		return new Promise(async (resolve, reject)=>{
 			const schemaResult = schemaCheck(ctx, projectId, schemaObj)
@@ -139,7 +139,7 @@ module.exports = {
 				// } catch (err) {
 				// 	return reject({
 				// 		code: 400,
-				// 		responds: err
+				// 		data: err
 				// 	})
 				// }
 				
@@ -151,21 +151,22 @@ module.exports = {
 						console.log(err)
 						return reject({
 							code: 400,
-							responds: `Oops! Something went wrong!`
+							data: `Oops! Something went wrong!`
 						})
 					}
 				}
 
 				// REMOVE FOLDER
-				rmdir(schemaResult.targetFolder)
+				await rmdir(schemaResult.targetFolder)
 
 				// UPDATE DBS
 				try {
 					await self.update(ctx, projectId)	
 				} catch (err) {
-					reject({
+					console.log(err)
+					return reject({
 						code: 400,
-						responds: err
+						data: err
 					})
 				}
 
@@ -173,14 +174,14 @@ module.exports = {
 
 				resolve({
 					code: 201,
-					responds: `${schemaObj.name} successfully deleted`
+					data: `${schemaObj.name} successfully deleted`
 				})
 			}
 			else{       
 				console.log('Schema not exist')
 				return reject({
 					code: 400,
-					responds: 'Schema not exist'
+					data: 'Schema not exist'
 				})
 			}
 		})
@@ -194,7 +195,7 @@ module.exports = {
 			if(ctx.dbs[projectId] && ctx.dbs[projectId].schemas){
 				resolve({
 					code: 201,
-					responds: ctx.dbs[projectId].schemas
+					data: ctx.dbs[projectId].schemas
 				})
 			}
 			let schemas = glob.sync(path.join(ctx.USERS_PROJECTS, projectId, 'api', '*', 'schema.json')).map((schemaPath)=>{
@@ -210,13 +211,13 @@ module.exports = {
 				ctx.schemas = schemas
 				resolve({
 					code: 201,
-					responds: schemas
+					data: schemas
 				})
 			}
 			else{
 				reject({
 					code: 400,
-					responds: 'No schema found'
+					data: 'No schema found'
 				})
 			}
 		})
@@ -234,25 +235,27 @@ module.exports = {
 			try {
 				const rawSchemas = await self.get(ctx, projectId)
 				Object.assign(ctx.dbs, {[projectId]: {}})
-				await Promise.all(rawSchemas.responds.map(async (rawSchema) => {
-					try {
-						const models = await ctx.utils.db.buildModel(ctx, projectId, rawSchema)
-						if(!ctx.dbs[projectId].models){
-							ctx.dbs[projectId].models = {}
+				if(rawSchemas.data.length > 0){
+					await Promise.all(rawSchemas.data.map(async (rawSchema) => {
+						try {
+							const models = await ctx.utils.db.buildModel(ctx, projectId, rawSchema)
+							if(!ctx.dbs[projectId].models){
+								ctx.dbs[projectId].models = {}
+							}
+							if(!ctx.dbs[projectId].schemas){
+								ctx.dbs[projectId].schemas = {}
+							}
+							Object.assign(ctx.dbs[projectId].models, {[rawSchema.info.name]: models})
+							Object.assign(ctx.dbs[projectId].schemas, {[rawSchema.info.name]: rawSchema})
+						} catch (err) {
+							console.log(err)
+							reject(err)
 						}
-						if(!ctx.dbs[projectId].schemas){
-							ctx.dbs[projectId].schemas = {}
-						}
-						Object.assign(ctx.dbs[projectId].models, {[rawSchema.info.name]: models})
-						Object.assign(ctx.dbs[projectId].schemas, {[rawSchema.info.name]: rawSchema})
-					} catch (err) {
-						console.log(err)
-						reject(err)
-					}
-				}))
-				resolve(`${projectId} schemas successfully cached`)
+					}))
+				}
+				return resolve(`${projectId} schemas successfully cached`)
 			} catch (err) {
-				reject(err)
+				return reject(err)
 			}
 		})
 	}

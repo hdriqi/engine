@@ -7,8 +7,8 @@ module.exports = {
 
 		myRouter.post('/login', async (req, res) => {
 			try {
-				const responds = await controllers.login(ctx, req, 'engine-core')
-				res.json(responds)
+				const response = await controllers.login(ctx, req, 'engine-core')
+				res.json(response)
 			} catch (err) {
 				res.json(err)
 			}
@@ -16,8 +16,8 @@ module.exports = {
 
 		myRouter.post('/register', async (req, res) => {
 			try {
-				const responds = await controllers.register(ctx, req, 'engine-core')
-				res.json(responds)
+				const response = await controllers.register(ctx, req, 'engine-core')
+				res.json(response)
 			} catch (err) {
 				res.json(err)
 			}
@@ -25,8 +25,8 @@ module.exports = {
 
 		myRouter.post('/current', async (req, res) => {
 			try {
-				const responds = await controllers.current(ctx, req, 'engine-core')
-				res.json(responds)
+				const response = await controllers.current(ctx, req)
+				res.json(response)
 			} catch (err) {
 				res.json(err)
 			}

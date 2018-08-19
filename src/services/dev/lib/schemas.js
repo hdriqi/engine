@@ -33,7 +33,7 @@ export default (ctx) => {
 		}
 		else if(req.method === 'DELETE'){
 			try {
-				const result = await ctx.utils.schema.remove(ctx, req.params.projectId, {
+				const result = await ctx.utils.schema.delete(ctx, req.params.projectId, {
 					name: req.body.schemaName
 				})
 				res.json(result)
