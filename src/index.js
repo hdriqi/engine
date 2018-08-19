@@ -53,7 +53,7 @@ class Engine {
 		})
 		// Cache all users schemas
 		// Read from schemas.json file
-		await Promise.all(listOfProjects.data.map(async (project) => {
+		await Promise.all(listOfProjects.map(async (project) => {
 			Object.assign(this.dbsConnection, {[project.name]: this.utils.db.sideConnection(this.dbsConnection[this.CORE_DB], project.name)})
 			await this.utils.schema.update(this, project.name)
 		}))

@@ -59,28 +59,18 @@ module.exports = {
 
 				// UPDATE DBS
 				try {
-					await self.update(ctx, projectId)	
+					await self.update(ctx, projectId)
 				} catch (err) {
-					console.log(err)
-					reject({
-						code: 400,
-						data: err
-					})
+					return reject(err)
 				}
 
 				console.log(`${schemaObj.name} successfully created`)
 
-				resolve({
-					code: 201,
-					data: `${schemaObj.name} successfully created`
-				})
+				return resolve(`${schemaObj.name} successfully created`)
 			}
 			else{
-				console.log('Schema Exist')
-				reject({
-					code: 400,
-					data: 'Schema already exist'
-				})
+				console.log('Schema exist')
+				return reject('Schema already exist')
 			}
 		})
 	},
@@ -101,25 +91,16 @@ module.exports = {
 				try {
 					await self.update(ctx, projectId)	
 				} catch (err) {
-					reject({
-						code: 400,
-						data: err
-					})
+					return reject(err)
 				}
 
 				console.log(`${schemaObj.name} successfully updated`)
 
-				resolve({
-					code: 200,
-					data: `${schemaObj.name} successfully updated`
-				})
+				return resolve(`${schemaObj.name} successfully updated`)
 			}
 			else{       
-				console.log('Schema not Exist')
-				reject({
-					code: 400,
-					data: 'Schema not exist'
-				})
+				console.log('Schema not exist')
+				return reject('Schema not exist')
 			}
 		})
 	},
@@ -148,41 +129,31 @@ module.exports = {
 					await ctx.dbsConnection[projectId].dropCollection(schemaObj.name.toLowerCase())	
 				} catch (err) {
 					if(err.codeName !== 'NamespaceNotFound'){
-						console.log(err)
-						return reject({
-							code: 400,
-							data: `Oops! Something went wrong!`
-						})
+						return reject(err)
 					}
 				}
 
 				// REMOVE FOLDER
-				await rmdir(schemaResult.targetFolder)
+				try {
+					await rmdir(schemaResult.targetFolder)	
+				} catch (err) {
+					return reject(err)
+				}
 
 				// UPDATE DBS
 				try {
 					await self.update(ctx, projectId)	
 				} catch (err) {
-					console.log(err)
-					return reject({
-						code: 400,
-						data: err
-					})
+					return reject(err)
 				}
 
 				console.log(`${schemaObj.name} successfully deleted`)
 
-				resolve({
-					code: 201,
-					data: `${schemaObj.name} successfully deleted`
-				})
+				return resolve(`${schemaObj.name} successfully deleted`)
 			}
 			else{       
 				console.log('Schema not exist')
-				return reject({
-					code: 400,
-					data: 'Schema not exist'
-				})
+				return reject('Schema not exist')
 			}
 		})
 	},
@@ -193,32 +164,21 @@ module.exports = {
 	get(ctx, projectId) {
 		return new Promise((resolve, reject)=>{
 			if(ctx.dbs[projectId] && ctx.dbs[projectId].schemas){
-				resolve({
-					code: 201,
-					data: ctx.dbs[projectId].schemas
-				})
+				return resolve(ctx.dbs[projectId].schemas)
 			}
 			let schemas = glob.sync(path.join(ctx.USERS_PROJECTS, projectId, 'api', '*', 'schema.json')).map((schemaPath)=>{
 				try{
 					let data = JSON.parse(fs.readFileSync(schemaPath))
 					return data
 				} catch (err){
-					console.log(err)
 					return false
 				}
 			})
 			if(schemas){
-				ctx.schemas = schemas
-				resolve({
-					code: 201,
-					data: schemas
-				})
+				resolve(schemas)
 			}
 			else{
-				reject({
-					code: 400,
-					data: 'No schema found'
-				})
+				reject('No schema found')
 			}
 		})
 	},
@@ -235,8 +195,8 @@ module.exports = {
 			try {
 				const rawSchemas = await self.get(ctx, projectId)
 				Object.assign(ctx.dbs, {[projectId]: {}})
-				if(rawSchemas.data.length > 0){
-					await Promise.all(rawSchemas.data.map(async (rawSchema) => {
+				if(rawSchemas.length > 0){
+					await Promise.all(rawSchemas.map(async (rawSchema) => {
 						try {
 							const models = await ctx.utils.db.buildModel(ctx, projectId, rawSchema)
 							if(!ctx.dbs[projectId].models){
@@ -248,7 +208,6 @@ module.exports = {
 							Object.assign(ctx.dbs[projectId].models, {[rawSchema.info.name]: models})
 							Object.assign(ctx.dbs[projectId].schemas, {[rawSchema.info.name]: rawSchema})
 						} catch (err) {
-							console.log(err)
 							reject(err)
 						}
 					}))

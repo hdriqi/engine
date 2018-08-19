@@ -39,9 +39,8 @@ module.exports = {
 
 	/**
 	 * 
-	 * @param {*} ctx 
-	 * @param {*} params 
-	 * @param {*} params.schemaId 
+	 * @param {ctx} ctx 
+	 * @param {projectId, schemaId} params 
 	 */
 	find(ctx, params) {
 		return new Promise((resolve, reject)=>{
@@ -52,29 +51,18 @@ module.exports = {
 				.skip(filters.skip)
 				.limit(filters.limit)
 				.then((result)=>{
-					resolve({
-						code: 200,
-						data: result
-					})
+					return resolve(result)
 				})
 				.catch((err)=>{
-					console.log(err)
-					reject({
-						code: 400,
-						data: {
-							name: err.name,
-							message: err.message
-						}
-					})
+					return reject(err)
 				})
 		})
 	},
 
 	/**
 	 * 
-	 * @param {*} ctx 
-	 * @param {*} params 
-	 * @param {*} params.schemaId 
+	 * @param {ctx} ctx 
+	 * @param {projectId, schemaId, objectId} params 
 	 */
 	findOne(ctx, params) {
 		return new Promise((resolve, reject)=>{
@@ -84,28 +72,18 @@ module.exports = {
 				.where(filters.where)
 				.sort(filters.sort)
 				.then((result)=>{
-					resolve({
-						code: 200,
-						data: result
-					})
+					return resolve(result)
 				})
 				.catch((err)=>{
-					reject({
-						code: 400,
-						data: {
-							name: err.name,
-							message: err.message
-						}
-					})
+					return reject(err)
 				})
 		})
 	},
 
 	/**
 	 * 
-	 * @param {*} ctx 
-	 * @param {*} params 
-	 * @param {*} params.schemaId 
+	 * @param {ctx} ctx 
+	 * @param {projectId, schemaId, body} params 
 	 */
 	insert(ctx, params) {
 		return new Promise(async (resolve, reject)=>{
@@ -116,75 +94,46 @@ module.exports = {
 			let newDoc = new ctx.dbs[params.projectId].models[params.schemaId](attributes)
 			newDoc.save()
 				.then((result)=>{
-					resolve({
-						code: 201,
-						data: result
-					})
+					return resolve(result)
 				})
 				.catch((err)=>{
-					reject({
-						code: 400,
-						data: {
-							name: err.name,
-							message: err.message
-						}
-					})
+					return reject(err)
 				})
 		})
 	},
 
 	/**
 	 * 
-	 * @param {*} ctx 
-	 * @param {*} params 
-	 * @param {*} params.schemaId 
+	 * @param {ctx} ctx 
+	 * @param {projectId, schemaId, objectId, body} params 
 	 */
 	update(ctx, params) {
 		return new Promise(async (resolve, reject)=>{
 			const id = ctx.dbs[params.projectId].schemas[params.schemaId].info.id
 			ctx.dbs[params.projectId].models[params.schemaId].findOneAndUpdate({[id]: params.objectId}, { $set: params.body }, { rawResult: true })
 				.then((result)=>{
-					resolve({
-						code: 200,
-						data: result.value
-					})
+					return resolve(result)
 				})
 				.catch((err)=>{
-					reject({
-						code: 400,
-						data: {
-							name: err.name,
-							message: err.message
-						}
-					})
+					return reject(err)
 				})
 		})
 	},
 
 	/**
 	 * 
-	 * @param {*} ctx 
-	 * @param {*} params 
-	 * @param {*} params.schemaId 
+	 * @param {ctx} ctx 
+	 * @param {projectId, schemaId, objectId} params 
 	 */
 	delete(ctx, params) {
 		return new Promise(async (resolve, reject)=>{
 			const id = ctx.dbs[params.projectId].schemas[params.schemaId].info.id
-			ctx.dbs[params.projectId].models[params.schemaId].deleteOne({[id]: params.objectId})
+			ctx.dbs[params.projectId].models[params.schemaId].deleteMany({[id]: params.objectId})
 				.then((result)=>{
-					resolve({
-						code: 200,
-						data: result
-					})
+					return resolve(result)
 				})
 				.catch((err)=>{
-					reject({
-						code: 400,
-						data: {
-							name: err.name,
-							message: err.message
-						}
-					})
+					return reject(err)
 				})
 		})
 	}

@@ -10,10 +10,8 @@ const rmdir = function(dir) {
 		if(filename == '.' || filename == '..') {
 			// pass these files
 		} else if(stat.isDirectory()) {
-			// rmdir recursively
 			rmdir(filename)
 		} else {
-			// rm fiilename
 			fs.unlinkSync(filename)
 		}
 	}
@@ -48,28 +46,18 @@ module.exports = {
 					query: req.query
 				})
 			} catch (err) {
-				return {
-					code: 400,
-					message: err
-				}
+				return err
 			}
 
 			mkdirSync(projectResult.targetFolder)
 			mkdirSync(path.join(projectResult.targetFolder, 'api'))
 
-			Object.assign(ctx.dbsConnection, {[result.data.name]: ctx.utils.db.sideConnection(ctx.dbsConnection[ctx.CORE_DB], result.data.name)})
-			// await ctx.utils.schema.update(ctx, result.data.name)
+			Object.assign(ctx.dbsConnection, {[result.name]: ctx.utils.db.sideConnection(ctx.dbsConnection[ctx.CORE_DB], result.name)})
 
-			return {
-				code: 201,
-				data: `${req.body.name} successfully created`
-			}
+			return `${result.name} successfully created`
 		}
 		else{
-			return {
-				code: 400,
-				message: `${req.body.name} exist`
-			}
+			return `${req.body.name} exist`
 		}
 	},
 
@@ -77,7 +65,6 @@ module.exports = {
 		const user = await ctx.utils.auth.verify(req)
 		req.body.owner = user._id
 
-		// removefolder
 		const projectResult = projectCheck(ctx, req.params.objectId)
 		if(projectResult.exist){
 			try {
@@ -88,24 +75,19 @@ module.exports = {
 					query: req.query
 				})
 			} catch (err) {
-				return {
-					code: 400,
-					message: err
-				}
+				return err
 			}
 
-			await rmdir(projectResult.targetFolder)
-
-			return {
-				code: 201,
-				data: `${req.params.objectId} successfully deleted`
+			try {
+				await rmdir(projectResult.targetFolder)	
+			} catch (err) {
+				return err
 			}
+
+			return `${req.params.objectId} successfully deleted`
 		}
 		else{
-			return {
-				code: 400,
-				message: `${req.params.objectId} not exist`
-			}
+			return `${req.params.objectId} not exist`
 		}
 	}
 }
