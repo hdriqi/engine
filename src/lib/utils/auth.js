@@ -33,15 +33,12 @@ module.exports = {
 	 */
 	verify(req) {
 		return new Promise((resolve, reject)=>{
-			let token = req.headers.authorization.split(' ')[1]
+			let token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : false
 			try {
 				var decoded = jwt.verify(token, process.env.JWT_SECRET)
-				resolve(decoded)
+				return resolve(decoded)
 			} catch(err) {
-				reject({
-					code: 400,
-					result: err
-				})
+				return reject(err.message)
 			}
 		})
 	},

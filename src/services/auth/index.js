@@ -7,28 +7,46 @@ module.exports = {
 
 		myRouter.post('/login', async (req, res) => {
 			try {
-				const response = await controllers.login(ctx, req, 'engine-core')
-				res.json(response)
+				const response = await controllers.login(ctx, req)
+				res.status(200).json({
+					status: 'success',
+					data: response
+				})
 			} catch (err) {
-				res.json(err)
+				res.status(400).json({
+					status: 'error',
+					message: err
+				})
 			}
 		})
 
 		myRouter.post('/register', async (req, res) => {
 			try {
-				const response = await controllers.register(ctx, req, 'engine-core')
-				res.json(response)
+				const response = await controllers.register(ctx, req)
+				res.status(200).json({
+					status: 'success',
+					data: response
+				})
 			} catch (err) {
-				res.json(err)
+				res.status(400).json({
+					status: 'error',
+					message: err
+				})
 			}
 		})
 
-		myRouter.post('/current', async (req, res) => {
+		myRouter.get('/current', async (req, res) => {
 			try {
 				const response = await controllers.current(ctx, req)
-				res.json(response)
+				res.status(200).json({
+					status: 'success',
+					data: response
+				})
 			} catch (err) {
-				res.json(err)
+				res.status(400).json({
+					status: 'error',
+					message: err
+				})
 			}
 		})
 

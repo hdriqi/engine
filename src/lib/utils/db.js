@@ -43,40 +43,54 @@ module.exports = {
 	 * @param {projectId, schemaId} params 
 	 */
 	find(ctx, params) {
+		console.log('find', params)
 		return new Promise((resolve, reject)=>{
-			const filters = ctx.filtersBuilder(ctx, params)
-			ctx.dbs[params.projectId].models[params.schemaId].find()
-				.where(filters.where)
-				.sort(filters.sort)
-				.skip(filters.skip)
-				.limit(filters.limit)
-				.then((result)=>{
-					return resolve(result)
-				})
-				.catch((err)=>{
-					return reject(err)
-				})
+			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId]){
+				const filters = ctx.filtersBuilder(ctx, params)
+				ctx.dbs[params.projectId].models[params.schemaId].find()
+					.where(filters.where)
+					.sort(filters.sort)
+					.skip(filters.skip)
+					.limit(filters.limit)
+					.then((result)=>{
+						return resolve(result)
+					})
+					.catch((err)=>{
+						return reject(err.message)
+					})
+			}
+			else{
+				return reject('Bad Request')
+			}
 		})
 	},
 
 	/**
 	 * 
 	 * @param {ctx} ctx 
-	 * @param {projectId, schemaId, objectId} params 
+	 * @param {projectId, schemaId, objectKey} params 
 	 */
 	findOne(ctx, params) {
+		console.log('findOne', params)
 		return new Promise((resolve, reject)=>{
-			const id = ctx.dbs[params.projectId].schemas[params.schemaId].info.id
-			let filters = ctx.filtersBuilder(ctx, params)
-			ctx.dbs[params.projectId].models[params.schemaId].findOne({[id]: params.objectId})
-				.where(filters.where)
-				.sort(filters.sort)
-				.then((result)=>{
-					return resolve(result)
-				})
-				.catch((err)=>{
-					return reject(err)
-				})
+			console.log(ctx.dbs)
+			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId] && params.objectKey){
+				console.log(`findOne -> ${params.projectId} ${params.schemaId} ${params.objectKey}`)
+				const key = ctx.dbs[params.projectId].schemas[params.schemaId].info.key
+				let filters = ctx.filtersBuilder(ctx, params)
+				ctx.dbs[params.projectId].models[params.schemaId].findOne({[key]: params.objectKey})
+					.where(filters.where)
+					.sort(filters.sort)
+					.then((result)=>{
+						return resolve(result)
+					})
+					.catch((err)=>{
+						return reject(err.message)
+					})
+			}
+			else{
+				return reject('Bad Request')
+			}
 		})
 	},
 
@@ -86,55 +100,75 @@ module.exports = {
 	 * @param {projectId, schemaId, body} params 
 	 */
 	insert(ctx, params) {
+		console.log('insert', params)
 		return new Promise(async (resolve, reject)=>{
-			let attributes = {}
-			Object.keys(ctx.dbs[params.projectId].schemas[params.schemaId].attributes).forEach((key)=>{
-				Object.assign(attributes, {[key]: params.body[key]})
-			})
-			let newDoc = new ctx.dbs[params.projectId].models[params.schemaId](attributes)
-			newDoc.save()
-				.then((result)=>{
-					return resolve(result)
+			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId] && params.body){
+				let attributes = {}
+				Object.keys(ctx.dbs[params.projectId].schemas[params.schemaId].attributes).forEach((key)=>{
+					Object.assign(attributes, {[key]: params.body[key]})
 				})
-				.catch((err)=>{
-					return reject(err)
-				})
+				let newDoc = new ctx.dbs[params.projectId].models[params.schemaId](attributes)
+				newDoc.save()
+					.then((result)=>{
+						return resolve(result)
+					})
+					.catch((err)=>{
+						return reject(err.message)
+					})
+			}
+			else{
+				return reject('Bad Request')
+			}
 		})
 	},
 
 	/**
 	 * 
 	 * @param {ctx} ctx 
-	 * @param {projectId, schemaId, objectId, body} params 
+	 * @param {projectId, schemaId, objectKey, body} params 
 	 */
-	update(ctx, params) {
+	modify(ctx, params) {
+		console.log('update', params)
 		return new Promise(async (resolve, reject)=>{
-			const id = ctx.dbs[params.projectId].schemas[params.schemaId].info.id
-			ctx.dbs[params.projectId].models[params.schemaId].findOneAndUpdate({[id]: params.objectId}, { $set: params.body }, { rawResult: true })
-				.then((result)=>{
-					return resolve(result)
-				})
-				.catch((err)=>{
-					return reject(err)
-				})
+			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId] && params.objectKey && params.body){
+				const key = ctx.dbs[params.projectId].schemas[params.schemaId].info.key
+				ctx.dbs[params.projectId].models[params.schemaId].findOneAndUpdate({[key]: params.objectKey}, { $set: params.body }, { rawResult: true })
+					.then((result)=>{
+						return resolve(result)
+					})
+					.catch((err)=>{
+						return reject(err.message)
+					})
+			}
+			else{
+				return reject('Bad Request')
+			}
 		})
 	},
 
 	/**
 	 * 
 	 * @param {ctx} ctx 
-	 * @param {projectId, schemaId, objectId} params 
+	 * @param {projectId, schemaId, objectKey} params 
 	 */
 	delete(ctx, params) {
+		console.log('delete', params)
 		return new Promise(async (resolve, reject)=>{
-			const id = ctx.dbs[params.projectId].schemas[params.schemaId].info.id
-			ctx.dbs[params.projectId].models[params.schemaId].deleteMany({[id]: params.objectId})
-				.then((result)=>{
-					return resolve(result)
-				})
-				.catch((err)=>{
-					return reject(err)
-				})
+			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId] && params.objectKey){
+				const key = ctx.dbs[params.projectId].schemas[params.schemaId].info.key
+				ctx.dbs[params.projectId].models[params.schemaId].deleteMany({[key]: params.objectKey})
+					.then((result)=>{
+						if(result.n > 0) return resolve(result)
+						return reject('Bad Request - object not found')
+					})
+					.catch((err)=>{
+						console.log(err)
+						return reject(err.message)
+					})
+			}
+			else{
+				return reject('Bad Request')
+			}
 		})
 	}
 }

@@ -1,7 +1,7 @@
 {
   "info": {
 		"name": "projects",
-		"id": "name",
+		"key": "name",
 		"desc": "Users projects"
   },
   "attributes": {

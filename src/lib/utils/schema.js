@@ -69,8 +69,8 @@ module.exports = {
 				return resolve(`${schemaObj.name} successfully created`)
 			}
 			else{
-				console.log('Schema exist')
-				return reject('Schema already exist')
+				console.log('schema exist')
+				return reject('schema already exist')
 			}
 		})
 	},
@@ -99,8 +99,8 @@ module.exports = {
 				return resolve(`${schemaObj.name} successfully updated`)
 			}
 			else{       
-				console.log('Schema not exist')
-				return reject('Schema not exist')
+				console.log('schema not exist')
+				return reject('schema not exist')
 			}
 		})
 	},
@@ -152,8 +152,8 @@ module.exports = {
 				return resolve(`${schemaObj.name} successfully deleted`)
 			}
 			else{       
-				console.log('Schema not exist')
-				return reject('Schema not exist')
+				console.log('schema not exist')
+				return reject('schema not exist')
 			}
 		})
 	},
@@ -178,7 +178,7 @@ module.exports = {
 				resolve(schemas)
 			}
 			else{
-				reject('No schema found')
+				reject('no schema found')
 			}
 		})
 	},

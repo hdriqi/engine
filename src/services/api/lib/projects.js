@@ -31,10 +31,6 @@ const projectCheck = (ctx, projectId) => {
 
 module.exports = {
 	async add(ctx, req) {
-		const user = await ctx.utils.auth.verify(req)
-		req.body.owner = user._id
-		
-		// makefolder
 		const projectResult = projectCheck(ctx, req.body.name)
 		if(!projectResult.exist){
 			let result
@@ -62,32 +58,40 @@ module.exports = {
 	},
 
 	async delete(ctx, req) {
-		const user = await ctx.utils.auth.verify(req)
-		req.body.owner = user._id
-
-		const projectResult = projectCheck(ctx, req.params.objectId)
+		const projectResult = projectCheck(ctx, req.params.projectId)
 		if(projectResult.exist){
 			try {
 				await ctx.utils.handler.delete(ctx, {
 					projectId: ctx.CORE_DB,
 					schemaId: 'projects',
-					objectId: req.params.objectId,
+					objectKey: req.params.projectId,
 					query: req.query
 				})
+			} catch (err) {
+				console.log(err)
+				return err
+			}
+
+			// DROP DATABASE
+			try {
+				ctx.dbsConnection[req.params.objectKey].dropDatabase()
+				delete ctx.dbsConnection[req.params.objectKey]
+				delete ctx.dbs[req.params.objectKey]
 			} catch (err) {
 				return err
 			}
 
+			// REMOVE PROJECT FOLDER
 			try {
 				await rmdir(projectResult.targetFolder)	
 			} catch (err) {
 				return err
 			}
 
-			return `${req.params.objectId} successfully deleted`
+			return `${req.params.objectKey} successfully deleted`
 		}
 		else{
-			return `${req.params.objectId} not exist`
+			return `${req.params.objectKey} not exist`
 		}
 	}
 }

@@ -30,57 +30,28 @@ const checkAccess = (ctx, user, targetEndpoint, targetMethod)=> {
 module.exports = {
 	/**
 	 * 
-	 * @param {*} req 
-	 */
-	verify(req) {
-		return new Promise((resolve, reject)=>{
-			let token = req.headers.authorization.split(' ')[1]
-			try {
-				var decoded = jwt.verify(token, process.env.JWT_SECRET)
-				resolve(decoded)
-			} catch(err) {
-				reject({
-					code: 400,
-					result: err
-				})
-			}
-		})
-	},
-
-	/**
-	 * 
 	 * @param {*} ctx 
 	 * @param {*} req 
 	 */
-	register(ctx, req, dbName) {
+	register(ctx, req) {
 		return new Promise(async (resolve, reject)=>{
-			let attributes = {}
 			if(!req.body.password) {
-				reject({
-					code: 400,
-					result: 'Password is required'
-				})
+				return reject('password is required')
 			}
 			bcrypt.hash(req.body.password, 10)
-				.then((hash)=>{
+				.then(async (hash)=>{
 					req.body.password = hash
-					Object.keys(ctx.dbs[dbName].Users.attributes).forEach(async (key)=>{
-						Object.assign(attributes, {[key]: req.body[key]})
-					})
-					let newUsers = new ctx.dbs[dbName].Users.model(attributes)
-					newUsers.save()
-						.then((result)=>{
-							resolve({
-								code: 201,
-								result: result._id
-							})
+					try {
+						const response = await ctx.utils.db.insert(ctx, {
+							projectId: ctx.CORE_DB,
+							schemaId: 'users',
+							body: req.body
 						})
-						.catch((err)=>{
-							reject({
-								code: 400,
-								result: err
-							})
-						})
+						return resolve(response)
+					} catch (err) {
+						return reject(err)
+					}
+					
 				})
 		})
 	},
@@ -90,11 +61,11 @@ module.exports = {
 	 * @param {*} ctx 
 	 * @param {*} req 
 	 */
-	login(ctx, req, dbName) {
+	login(ctx, req) {
 		return new Promise((resolve, reject)=>{
 			let [idKey, idVal] = req.body.username ? ['username', req.body.username] : ['email', req.body.email]
 
-			ctx.dbs[dbName].Users.model.findOne({
+			ctx.dbs[ctx.CORE_DB].models['users'].findOne({
 				[idKey]: idVal
 			})
 				.then((result)=>{
@@ -106,29 +77,17 @@ module.exports = {
 										_id: result._id,
 										_role: result.role
 									}, process.env.JWT_SECRET, {expiresIn: '14d'})
-									resolve({
-										code: 200,
-										result: token
-									})
+									resolve(token)
 								}
-								else reject({
-									code: 400,
-									result: 'invalid username/password'
-								})
+								else reject('invalid username/password')
 							})
 					}
 					else{
-						reject({
-							code: 400,
-							result: 'invalid username/password'
-						})
+						reject('invalid username/password')
 					}
 				})
 				.catch((err)=>{
-					reject({
-						code: 400,
-						result: err
-					})
+					reject(err)
 				})
 		})
 	},
@@ -141,19 +100,42 @@ module.exports = {
 	current(ctx, req) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				const decoded = await this.verify(req)
-				let result = await ctx.utils.db.findOne(ctx, {
-					projectId: ctx.CORE_DB,
-					schemaId: 'users',
-					objectId: decoded._id,
-					query: req.query
+				const decoded = await ctx.utils.auth.verify(req)
+				ctx.cache.users.findOne({ _id: decoded._id }, async (err, doc) => {
+					if (!doc) {
+						doc = await ctx.utils.db.findOne(ctx, {
+							projectId: ctx.CORE_DB,
+							schemaId: 'users',
+							objectId: decoded._id
+						})
+						ctx.cache.users.insert(JSON.parse(JSON.stringify(doc)))
+					}
+					return resolve(doc)
 				})
-				resolve(result)
 			} catch (err) {
-				reject(err)
+				return reject(err)
 			}
 		})
 	},
+
+	// currentUpdate(ctx, req) {
+	// 	return new Promise(async (resolve, reject) => {
+	// 		try {
+	// 			const decoded = await this.verify(req)
+	// 			let result = await ctx.utils.db.modify(ctx, {
+	// 				projectId: ctx.CORE_DB,
+	// 				schemaId: 'users',
+	// 				objectId: decoded._id,
+	// 				body: {
+	// 					username: req.body.username
+	// 				}
+	// 			})
+	// 			resolve(result)
+	// 		} catch (err) {
+	// 			reject(err)
+	// 		}
+	// 	})
+	// },
 
 	/**
 	 * 

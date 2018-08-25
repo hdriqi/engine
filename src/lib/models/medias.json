@@ -1,33 +1,38 @@
 {
   "info": {
-		"name": "users",
-		"key": "_id",
-		"desc": "Users schema"
+		"name": "medias",
+		"key": "name",
+		"desc": "core media schema"
   },
   "attributes": {
-    "username": {
+    "name": {
       "field": "single-line-text",
       "type": "string",
       "required": true,
       "unique": true
 		},
-    "email": {
+		"originalName": {
       "field": "single-line-text",
       "type": "string",
-      "required": true,
-      "unique": true
-    },
-    "password": {
+      "required": true
+		},
+		"project": {
       "field": "single-line-text",
       "type": "string",
       "required": true
     },
-    "role": {
+    "owner": {
+      "field": "relation",
+			"type": "string",
+			"ref": "users",
+			"required": true,
+			"autopopulate": true
+		},
+		"extension": {
       "field": "single-line-text",
       "type": "string",
-      "required": true,
-      "default": "authenticated"
-    }
+      "required": true
+		}
   },
   "options": {
     "timestamps": true
