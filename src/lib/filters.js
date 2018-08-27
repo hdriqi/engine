@@ -1,55 +1,56 @@
-'use strict'
+import XXhash from 'xxhash'
 
-/**
- * Expects a http GET params object and returns an expression with an $and operator at its root.
- */
 function parseQuery(o) {
-	var query = {
-		mongo_expression : { $and: [] },
+	var filter = {
+		query : { $and: [] },
 		config : {
-			sort : false,
-			populate : []
-		}
+			sort : null,
+			skip: null,
+			limit: null
+		},
+		cacheKey: null
 	}
 
 	for ( var i in o ) {
 		switch (i) {
-			case '_page':
-			case '_per_page':
-				query.config[i] = parseInt(o[i])
+			case '_limit':
+			case '_skip':
+				filter.config[i.substring(1)] = parseInt(o[i])
 				break
-			case '_sort_by':
-				if ( ! query.config.sort ) query.config.sort = {}
+			case '_sort':
+				if ( ! filter.config.sort ) filter.config.sort = {}
 				var p = o[i].split(',')
 				p.forEach((s)=>{
 					const key = s[0] === '-' ? s.substring(1) : s
-					Object.assign(query.config.sort, {[key]: s[0] !== '-' ? 1 : -1})
+					Object.assign(filter.config.sort, {[key]: s[0] !== '-' ? 1 : -1})
 				})
 				break
-			case '_populate':
-				query.config.populate = o[i].split(',')
-				break
+			// case '_populate':
+			// 	filter.config.populate = o[i].split(',')
+			// 	break
 			case '_$text':
 				var args = parsedSplit(',', o[i]),
 					text_search = { $text: { $search : args[0] } }
 				if ( args.length > 1 )
 					text_search.$text.$language = args[1]
-				query.mongo_expression.$and.push( text_search )
+				filter.query.$and.push( text_search )
 				break
 			default:
 				var parsedConditions = parseValue( o[i] )
 				for ( var j = 0, jj = parsedConditions.length; j < jj ; j++ ) {
 					var condition = {}
 					condition[i] = parsedConditions[j]
-					query.mongo_expression.$and.push( condition )
+					filter.query.$and.push( condition )
 				}
 		}
 	}
 
-	if ( ! query.mongo_expression.$and.length )
-		query.mongo_expression = {}
+	if ( ! filter.query.$and.length )
+		filter.query = {}
 
-	return query
+	const buf = Buffer.from(JSON.stringify({...filter.query, ...filter.config}), 'utf8')
+	filter.cacheKey = XXhash.hash(buf, 0xCAFEBABE)
+	return filter
 }
 
 /* primary operators that delimit criterias */
@@ -154,8 +155,8 @@ var parseValue = function (str) {
 	while ( i < ii ) {
 		if ( in_operator ) {
 			if ( str[i] === '}' ) {
-				if ( ~p_operators.indexOf(buffer) ||              // is primary operator
-										 ( c_condition && c_condition.args.length ) ) // following argument
+				if( ~p_operators.indexOf(buffer) ||              // is primary operator
+					( c_condition && c_condition.args.length ) ) // following argument
 					newCondition()
 				pushOperator( buffer )
 				in_operator = false

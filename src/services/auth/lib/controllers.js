@@ -41,6 +41,7 @@ module.exports = {
 			bcrypt.hash(req.body.password, 10)
 				.then(async (hash)=>{
 					req.body.password = hash
+					console.log(req.body)
 					try {
 						const response = await ctx.utils.db.insert(ctx, {
 							projectId: ctx.CORE_DB,
@@ -49,9 +50,9 @@ module.exports = {
 						})
 						return resolve(response)
 					} catch (err) {
+						console.log(err)
 						return reject(err)
 					}
-					
 				})
 		})
 	},
@@ -84,7 +85,7 @@ module.exports = {
 						}
 						return reject('invalid username/password')
 					})
-				ctx.dbs[ctx.CORE_DB].cache.users.insert(JSON.parse(JSON.stringify(doc)))
+				ctx.dbs[ctx.CORE_DB].cache.users.single.insert(JSON.parse(JSON.stringify(doc)))
 			} catch (err) {
 				return err
 			}
@@ -100,7 +101,7 @@ module.exports = {
 		return new Promise(async (resolve, reject) => {
 			try {
 				const decoded = await ctx.utils.auth.verify(req)
-				ctx.dbs[ctx.CORE_DB].cache.users.findOne({ _id: decoded._id }, async (err, doc) => {
+				ctx.dbs[ctx.CORE_DB].cache.users.single.findOne({ _id: decoded._id }, async (err, doc) => {
 					if(!doc) {
 						try {
 							doc = await ctx.utils.db.findOne(ctx, {
@@ -108,7 +109,7 @@ module.exports = {
 								schemaId: 'users',
 								objectKey: decoded._id
 							})
-							ctx.dbs[ctx.CORE_DB].cache.users.insert(JSON.parse(JSON.stringify(doc)))
+							ctx.dbs[ctx.CORE_DB].cache.users.single.insert(JSON.parse(JSON.stringify(doc)))
 						} catch (err) {
 							return reject(err)	
 						}

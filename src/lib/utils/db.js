@@ -3,6 +3,8 @@ import autopopulate from 'mongoose-autopopulate'
 import mongooseHidden from 'mongoose-hidden'
 import uniqueValidator from 'mongoose-unique-validator'
 
+import nedb from 'nedb'
+
 module.exports = {
 	/**
 	 * 
@@ -58,20 +60,39 @@ module.exports = {
 		console.log('find -> ', Object.values(params).join(' | '))
 		return new Promise((resolve, reject)=>{
 			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId]){
-				const filters = ctx.filtersBuilder(ctx, params)
-				// const q = ctx.filters(params.query)
-				// console.log(q.mongo_expression, q.config)
-
-				// if(ctx.dbs[params.projectId].cache[params.schemaId]){
-				// 	ctx.dbs[params.projectId].cache[params.schemaId].find(q.mongo_expression)
-				// 		.sort(q.config.sort)
-				// 		.exec((err, docs) => {
-				// 			console.log(docs)
-				// 		})
-				// }
-
-				// ctx.dbs[params.projectId].models[params.schemaId].find(q.mongo_expression)
-				// 	.sort(q.config.sort)
+				const filters = ctx.filters(params.query)
+				ctx.dbs[params.projectId].cache[params.schemaId].bulk.findOne({key: filters.cacheKey})
+					.sort(filters.config.sort)
+					.skip(filters.config.skip)
+					.limit(filters.config.limit)
+					.exec((err, doc) => {
+						if(!doc) {
+							console.log('read from db')
+							ctx.dbs[params.projectId].models[params.schemaId].find(filters.query)
+								.sort(filters.config.sort)
+								.skip(filters.config.skip)
+								.limit(filters.config.limit)
+								.then((result)=>{
+									ctx.dbs[params.projectId].cache[params.schemaId].bulk.insert({
+										key: filters.cacheKey,
+										data: JSON.stringify(result)
+									})
+									return resolve(result)
+								})
+								.catch((err)=>{
+									return reject(err.message)
+								})
+						}
+						else{
+							console.log(doc)
+							return resolve(JSON.parse(doc.data))
+						}
+					})
+				// ctx.dbs[params.projectId].models[params.schemaId].find()
+				// 	.query(filters.query)
+				// 	.sort(filters.sort)
+				// 	.skip(filters.skip)
+				// 	.limit(filters.limit)
 				// 	.then((result)=>{
 				// 		ctx.dbs[params.projectId].cache[params.schemaId].insert(JSON.parse(JSON.stringify(result)))
 				// 		return resolve(result)
@@ -79,18 +100,6 @@ module.exports = {
 				// 	.catch((err)=>{
 				// 		return reject(err.message)
 				// 	})
-				ctx.dbs[params.projectId].models[params.schemaId].find()
-					.where(filters.where)
-					.sort(filters.sort)
-					.skip(filters.skip)
-					.limit(filters.limit)
-					.then((result)=>{
-						ctx.dbs[params.projectId].cache[params.schemaId].insert(JSON.parse(JSON.stringify(result)))
-						return resolve(result)
-					})
-					.catch((err)=>{
-						return reject(err.message)
-					})
 			}
 			else{
 				return reject('Bad Request')
@@ -108,15 +117,23 @@ module.exports = {
 		return new Promise((resolve, reject)=>{
 			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId] && params.objectKey){
 				const key = ctx.dbs[params.projectId].schemas[params.schemaId].info.key
-				let filters = ctx.filtersBuilder(ctx, params)
-				ctx.dbs[params.projectId].models[params.schemaId].findOne({[key]: params.objectKey})
-					.where(filters.where)
-					.sort(filters.sort)
-					.then((result)=>{
-						return resolve(result.toObject())
-					})
-					.catch((err)=>{
-						return reject(err.message)
+				ctx.dbs[params.projectId].cache[params.schemaId].single.findOne({[key]: params.objectKey})
+					.exec((err, doc) => {
+						if(!doc) {
+							console.log('read from db')
+							ctx.dbs[params.projectId].models[params.schemaId].findOne({[key]: params.objectKey})
+								.then((result)=>{
+									ctx.dbs[params.projectId].cache[params.schemaId].single.insert(JSON.parse(JSON.stringify(result)))
+									return resolve(result)
+								})
+								.catch((err)=>{
+									return reject(err.message)
+								})
+						}
+						else{
+							console.log(doc)
+							return resolve(doc)
+						}
 					})
 			}
 			else{
@@ -131,7 +148,7 @@ module.exports = {
 	 * @param {projectId, schemaId, body} params 
 	 */
 	insert(ctx, params) {
-		console.log('insert -> ', Object.values(params).join(' | '))
+		// console.log('insert -> ', Object.values(params).join(' | '))
 		return new Promise(async (resolve, reject)=>{
 			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId] && params.body){
 				let attributes = {}
@@ -141,6 +158,7 @@ module.exports = {
 				let newDoc = new ctx.dbs[params.projectId].models[params.schemaId](attributes)
 				newDoc.save()
 					.then((result)=>{
+						ctx.dbs[params.projectId].cache[params.schemaId].bulk = new nedb
 						return resolve(result.toObject())
 					})
 					.catch((err)=>{
@@ -159,12 +177,14 @@ module.exports = {
 	 * @param {projectId, schemaId, objectKey, body} params 
 	 */
 	modify(ctx, params) {
-		console.log('modify -> ', Object.values(params).join(' | '))
+		// console.log('modify -> ', Object.values(params).join(' | '))
 		return new Promise(async (resolve, reject)=>{
 			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId] && params.objectKey && params.body){
 				const key = ctx.dbs[params.projectId].schemas[params.schemaId].info.key
 				ctx.dbs[params.projectId].models[params.schemaId].findOneAndUpdate({[key]: params.objectKey}, { $set: params.body }, { rawResult: true })
 					.then((result)=>{
+						ctx.dbs[params.projectId].cache[params.schemaId].bulk = new nedb
+						ctx.dbs[params.projectId].cache[params.schemaId].single.remove({[key]: params.objectKey})
 						return resolve(result)
 					})
 					.catch((err)=>{
@@ -183,13 +203,17 @@ module.exports = {
 	 * @param {projectId, schemaId, objectKey} params 
 	 */
 	delete(ctx, params) {
-		console.log('delete -> ', Object.values(params).join(' | '))
+		// console.log('delete -> ', Object.values(params).join(' | '))
 		return new Promise(async (resolve, reject)=>{
 			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId] && params.objectKey){
 				const key = ctx.dbs[params.projectId].schemas[params.schemaId].info.key
 				ctx.dbs[params.projectId].models[params.schemaId].deleteMany({[key]: params.objectKey})
 					.then((result)=>{
-						if(result.n > 0) return resolve(result)
+						if(result.n > 0) {
+							ctx.dbs[params.projectId].cache[params.schemaId].bulk = new nedb
+							ctx.dbs[params.projectId].cache[params.schemaId].single.remove({[key]: params.objectKey})
+							return resolve(result)
+						}
 						return reject('Bad Request - object not found')
 					})
 					.catch((err)=>{

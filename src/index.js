@@ -53,7 +53,7 @@ class Engine {
 			}
 			Object.assign(this.dbs[this.CORE_DB].models, {[rawSchema.info.name]: models})
 			Object.assign(this.dbs[this.CORE_DB].schemas, {[rawSchema.info.name]: rawSchema})
-			Object.assign(this.dbs[this.CORE_DB].cache, {[rawSchema.info.name]: new nedb()})
+			Object.assign(this.dbs[this.CORE_DB].cache, {[rawSchema.info.name]: {single: new nedb(), bulk: new nedb()}})
 		}))
 
 		// Cache all users project
@@ -62,11 +62,16 @@ class Engine {
 			projectId: this.CORE_DB,
 			schemaId: 'projects'
 		})
+
 		// Cache all users schemas
 		// Read from schemas.json file
 		await Promise.all(listOfProjects.map(async (project) => {
 			Object.assign(this.dbsConnection, {[project._id.toString()]: this.utils.db.sideConnection(this.dbsConnection[this.CORE_DB], project._id.toString())})
-			await this.utils.schema.update(this, project._id.toString())
+			try {
+				await this.utils.schema.update(this, project._id.toString())	
+			} catch (err) {
+				console.log(err)
+			}
 		}))
 
 		// Routes

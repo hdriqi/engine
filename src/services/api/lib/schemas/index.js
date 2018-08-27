@@ -48,7 +48,7 @@ export default (ctx) => {
 				name: req.body.name,
 				newName: req.body.newName,
 				desc: req.body.desc,
-				attributes: req.body.attributes ? JSON.parse(req.body.attributes) : {}
+				attributes: req.body.attributes
 			})
 			res.status(200).json({
 				status: 'success',

@@ -95,6 +95,7 @@ module.exports = {
 					console.log(`${schemaObj.name} successfully modified`)
 					return resolve(response)
 				} catch (err) {
+					console.log(err)
 					return reject(err)
 				}
 			}
@@ -198,24 +199,39 @@ module.exports = {
 			try {
 				ctx.dbsConnection[projectId].models = {}
 				Object.assign(ctx.dbs, {[projectId]: {}})
-				const rawSchemas = await self.get(ctx, projectId)
+				let rawSchemas
+				try {
+					rawSchemas = await self.get(ctx, projectId)	
+				} catch (err) {
+					console.log(err)
+				}
 				if(rawSchemas.length > 0){
-					await Promise.all(rawSchemas.map(async (rawSchema) => {
-						try {
-							const models = await ctx.utils.db.buildModel(ctx, projectId, rawSchema)
-							if(!ctx.dbs[projectId].models){
-								ctx.dbs[projectId].models = {}
-							}
-							if(!ctx.dbs[projectId].schemas){
-								ctx.dbs[projectId].schemas = {}
-							}
-							Object.assign(ctx.dbs[projectId].models, {[rawSchema.info.name]: models})
-							Object.assign(ctx.dbs[projectId].schemas, {[rawSchema.info.name]: rawSchema})
-							Object.assign(ctx.dbs[projectId].cache, {[rawSchema.info.name]: new nedb()})
-						} catch (err) {
-							reject(err)
-						}
-					}))
+					try {
+						await Promise.all(rawSchemas.map((rawSchema) => {
+							return new Promise(async (resolve, reject) => {
+								try {
+									const models = await ctx.utils.db.buildModel(ctx, projectId, rawSchema)
+									if(!ctx.dbs[projectId].models){
+										ctx.dbs[projectId].models = {}
+									}
+									if(!ctx.dbs[projectId].schemas){
+										ctx.dbs[projectId].schemas = {}
+									}
+									if(!ctx.dbs[projectId].cache){
+										ctx.dbs[projectId].cache = {}
+									}
+									Object.assign(ctx.dbs[projectId].models, {[rawSchema.info.name]: models})
+									Object.assign(ctx.dbs[projectId].schemas, {[rawSchema.info.name]: rawSchema})
+									Object.assign(ctx.dbs[projectId].cache, {[rawSchema.info.name]: {single: new nedb(), bulk: new nedb()}})
+									resolve()
+								} catch (err) {
+									reject(err)
+								}
+							})
+						}))	
+					} catch (err) {
+						return reject(err)
+					}
 				}
 				console.log(`${projectId} schemas successfully cached`)
 				return resolve(ctx.dbs[projectId].schemas)

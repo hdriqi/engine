@@ -5,7 +5,7 @@ export default (schemaObj) => {
 			"key": "_id",
 			"desc": "${schemaObj.desc}"
 		},
-		"attributes": ${schemaObj.attributes ? JSON.stringify(schemaObj.attributes) : '{}'},
+		"attributes": ${schemaObj.attributes || '{}'},
 		"options": {
 			"timestamps": true
 		}
