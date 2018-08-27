@@ -11,14 +11,16 @@ export default (ctx) => {
 				data: response
 			})
 		} catch (err) {
-			console.log(err)
 			res.status(400).json({
 				status: 'error',
 				message: err
 			})
 		}
 	})
-	myRouter.post('/projects/:projectId/schemas', async (req, res) => {
+	myRouter.post('/projects/:projectId/schemas', ctx.utils.validate({
+		name: ['isRequired', 'isAlphanumeric'],
+		desc: true
+	}),	async (req, res) => {
 		try {
 			const response = await ctx.utils.schema.add(ctx, req.params.projectId, {
 				name: req.body.name,
@@ -35,12 +37,18 @@ export default (ctx) => {
 			})
 		}
 	})
-	myRouter.put('/projects/:projectId/schemas', async (req, res) => {
+	myRouter.put('/projects/:projectId/schemas', ctx.utils.validate({
+		name: ['isRequired', 'isAlphanumeric'],
+		newName: ['isOptional', 'isAlphanumeric'],
+		desc: ['isRequired', 'isAny'],
+		attributes: ['isRequired', 'isJSON']
+	}), async (req, res) => {
 		try {
 			const response = await ctx.utils.schema.modify(ctx, req.params.projectId, {
 				name: req.body.name,
+				newName: req.body.newName,
 				desc: req.body.desc,
-				attributes: req.body.attributes
+				attributes: req.body.attributes ? JSON.parse(req.body.attributes) : {}
 			})
 			res.status(200).json({
 				status: 'success',
@@ -53,7 +61,9 @@ export default (ctx) => {
 			})
 		}
 	})
-	myRouter.delete('/projects/:projectId/schemas', async (req, res) => {
+	myRouter.delete('/projects/:projectId/schemas', ctx.utils.validate({
+		name: ['isRequired', 'isAlphanumeric']
+	}), async (req, res) => {
 		try {
 			const response = await ctx.utils.schema.delete(ctx, req.params.projectId, {
 				name: req.body.name

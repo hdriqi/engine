@@ -18,80 +18,70 @@ const rmdir = function(dir) {
 	fs.rmdirSync(dir)
 }
 
-const projectCheck = (ctx, projectId) => {
-	const targetFolder = path.join(ctx.USERS_PROJECTS, projectId.toLowerCase())
-	return fs.existsSync(targetFolder) ? {
-		exist: true,
-		targetFolder: targetFolder
-	} : {
-		exist: false,
-		targetFolder: targetFolder
-	}
-}
+// const projectCheck = (ctx, projectId) => {
+// 	const targetFolder = path.join(ctx.USERS_PROJECTS, projectId.toLowerCase())
+// 	return fs.existsSync(targetFolder) ? {
+// 		exist: true,
+// 		targetFolder: targetFolder
+// 	} : {
+// 		exist: false,
+// 		targetFolder: targetFolder
+// 	}
+// }
 
 module.exports = {
 	async add(ctx, req) {
-		const projectResult = projectCheck(ctx, req.body.name)
-		if(!projectResult.exist){
-			let result
-			try {
-				result = await ctx.utils.handler.insert(ctx, {
-					projectId: ctx.CORE_DB,
-					schemaId: 'projects',
-					body: req.body,
-					query: req.query
-				})
-			} catch (err) {
-				return err
-			}
+		try {
+			const result = await ctx.utils.db.insert(ctx, {
+				projectId: ctx.CORE_DB,
+				schemaId: 'projects',
+				body: req.body,
+				query: req.query
+			})
 
-			mkdirSync(projectResult.targetFolder)
-			mkdirSync(path.join(projectResult.targetFolder, 'api'))
+			const targetFolder = path.join(ctx.USERS_PROJECTS, result._id.toString())
+			
+			mkdirSync(targetFolder)
+			mkdirSync(path.join(targetFolder, 'api'))
 
 			Object.assign(ctx.dbsConnection, {[result.name]: ctx.utils.db.sideConnection(ctx.dbsConnection[ctx.CORE_DB], result.name)})
 
 			return `${result.name} successfully created`
-		}
-		else{
-			return `${req.body.name} exist`
+		} catch (err) {
+			throw err
 		}
 	},
 
 	async delete(ctx, req) {
-		const projectResult = projectCheck(ctx, req.params.projectId)
-		if(projectResult.exist){
-			try {
-				await ctx.utils.handler.delete(ctx, {
-					projectId: ctx.CORE_DB,
-					schemaId: 'projects',
-					objectKey: req.params.projectId,
-					query: req.query
-				})
-			} catch (err) {
-				console.log(err)
-				return err
-			}
+		try {
+			await ctx.utils.db.delete(ctx, {
+				projectId: ctx.CORE_DB,
+				schemaId: 'projects',
+				objectKey: req.params.projectId,
+				query: req.query
+			})
+
+			const targetFolder = path.join(ctx.USERS_PROJECTS, req.params.projectId)
 
 			// DROP DATABASE
 			try {
-				ctx.dbsConnection[req.params.objectKey].dropDatabase()
-				delete ctx.dbsConnection[req.params.objectKey]
-				delete ctx.dbs[req.params.objectKey]
+				ctx.dbsConnection[req.params.projectId].dropDatabase()
+				delete ctx.dbsConnection[req.params.projectId]
+				delete ctx.dbs[req.params.projectId]
 			} catch (err) {
 				return err
 			}
 
 			// REMOVE PROJECT FOLDER
 			try {
-				await rmdir(projectResult.targetFolder)	
+				await rmdir(targetFolder)	
 			} catch (err) {
 				return err
 			}
 
-			return `${req.params.objectKey} successfully deleted`
-		}
-		else{
-			return `${req.params.objectKey} not exist`
+			return `${req.params.projectId} successfully deleted`
+		} catch (err) {
+			throw err
 		}
 	}
 }

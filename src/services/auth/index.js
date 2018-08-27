@@ -5,7 +5,11 @@ module.exports = {
 	router(ctx) {
 		const myRouter = express.Router()
 
-		myRouter.post('/login', async (req, res) => {
+		myRouter.post('/login', ctx.utils.validate({
+			username: ['isOptional', 'isAlphanumeric'],
+			email: ['isOptional', 'isEmail'],
+			password: ['isRequired', 'isAny']
+		}), async (req, res) => {
 			try {
 				const response = await controllers.login(ctx, req)
 				res.status(200).json({
@@ -20,7 +24,11 @@ module.exports = {
 			}
 		})
 
-		myRouter.post('/register', async (req, res) => {
+		myRouter.post('/register', ctx.utils.validate({
+			username: ['isRequired', 'isAlphanumeric'],
+			email: ['isRequired', 'isEmail'],
+			password: ['isRequired', 'isAny']
+		}), async (req, res) => {
 			try {
 				const response = await controllers.register(ctx, req)
 				res.status(200).json({

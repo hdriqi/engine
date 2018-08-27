@@ -1,7 +1,7 @@
 {
   "info": {
 		"name": "projects",
-		"key": "name",
+		"key": "_id",
 		"desc": "Users projects"
   },
   "attributes": {
@@ -13,11 +13,11 @@
     },
     "owner": {
       "field": "relation",
-			"type": "string",
+			"type": "objectId",
 			"ref": "users",
 			"required": true,
 			"autopopulate": true
-    }
+		}
   },
   "options": {
     "timestamps": true

@@ -2,6 +2,7 @@ import fs from 'fs'
 import glob from 'glob'
 import path from 'path'
 import beautify from 'js-beautify'
+import nedb from 'nedb'
 
 // import Role from '../role'
 import templateSchema from '../../template/schema'
@@ -26,7 +27,7 @@ const rmdir = function(dir) {
 }
 
 const schemaCheck = (ctx, projectId, schemaObj) => {
-	const targetFolder = path.join(ctx.USERS_PROJECTS, projectId.toLowerCase(), 'api', schemaObj.name.toLowerCase())
+	const targetFolder = path.join(ctx.USERS_PROJECTS, projectId, 'api', schemaObj.name)
 	const targetFile = path.join(targetFolder, 'schema.json')
 	return fs.existsSync(targetFile) ? {
 		exist: true,
@@ -59,14 +60,12 @@ module.exports = {
 
 				// UPDATE DBS
 				try {
-					await self.update(ctx, projectId)
+					const response = await self.update(ctx, projectId)
+					console.log(`${schemaObj.name} successfully created`)
+					return resolve(response)
 				} catch (err) {
 					return reject(err)
 				}
-
-				console.log(`${schemaObj.name} successfully created`)
-
-				return resolve(`${schemaObj.name} successfully created`)
 			}
 			else{
 				console.log('schema exist')
@@ -83,22 +82,23 @@ module.exports = {
 		const self = this
 		return new Promise(async (resolve, reject) => {
 			const schemaResult = schemaCheck(ctx, projectId, schemaObj)
-			if(!schemaResult.exist){
+			if(schemaResult.exist){
 				// REPLACE SCHEMA FILE
 				fs.writeFileSync(schemaResult.targetFile, beautify(templateSchema(schemaObj), { indent_size: 2, indent_with_tabs: true }))
+				if(schemaObj.newName && schemaObj.name !== schemaObj.newName) {
+					fs.renameSync(schemaResult.targetFolder, path.join(ctx.USERS_PROJECTS, projectId, 'api', schemaObj.newName))
+				}
 
 				// UPDATE DBS
 				try {
-					await self.update(ctx, projectId)	
+					const response = await self.update(ctx, projectId)
+					console.log(`${schemaObj.name} successfully modified`)
+					return resolve(response)
 				} catch (err) {
 					return reject(err)
 				}
-
-				console.log(`${schemaObj.name} successfully updated`)
-
-				return resolve(`${schemaObj.name} successfully updated`)
 			}
-			else{       
+			else{
 				console.log('schema not exist')
 				return reject('schema not exist')
 			}
@@ -126,7 +126,7 @@ module.exports = {
 				
 				// DROP SCHEMA
 				try {
-					await ctx.dbsConnection[projectId].dropCollection(schemaObj.name.toLowerCase())	
+					await ctx.dbsConnection[projectId].dropCollection(schemaObj.name)	
 				} catch (err) {
 					if(err.codeName !== 'NamespaceNotFound'){
 						return reject(err)
@@ -142,14 +142,12 @@ module.exports = {
 
 				// UPDATE DBS
 				try {
-					await self.update(ctx, projectId)	
+					const response = await self.update(ctx, projectId)
+					console.log(`${schemaObj.name} successfully deleted`)
+					return resolve(response)
 				} catch (err) {
 					return reject(err)
 				}
-
-				console.log(`${schemaObj.name} successfully deleted`)
-
-				return resolve(`${schemaObj.name} successfully deleted`)
 			}
 			else{       
 				console.log('schema not exist')
@@ -164,8 +162,10 @@ module.exports = {
 	get(ctx, projectId) {
 		return new Promise((resolve, reject)=>{
 			if(ctx.dbs[projectId] && ctx.dbs[projectId].schemas){
+				console.log('read schemas from cache')
 				return resolve(ctx.dbs[projectId].schemas)
 			}
+			console.log('read schemas from file')
 			let schemas = glob.sync(path.join(ctx.USERS_PROJECTS, projectId, 'api', '*', 'schema.json')).map((schemaPath)=>{
 				try{
 					let data = JSON.parse(fs.readFileSync(schemaPath))
@@ -183,6 +183,10 @@ module.exports = {
 		})
 	},
 
+	getOne(ctx, projectId, schemaId) {
+		return JSON.parse(fs.readFileSync(path.join(ctx.USERS_PROJECTS, projectId, 'api', schemaId, 'schema.json')))
+	},
+
 	/**
 	 * 
 	 * @param {*} ctx 
@@ -190,11 +194,11 @@ module.exports = {
 	 */
 	update(ctx, projectId) {
 		const self = this
-		ctx.dbsConnection[projectId].models = {}
 		return new Promise(async (resolve, reject) => {
 			try {
-				const rawSchemas = await self.get(ctx, projectId)
+				ctx.dbsConnection[projectId].models = {}
 				Object.assign(ctx.dbs, {[projectId]: {}})
+				const rawSchemas = await self.get(ctx, projectId)
 				if(rawSchemas.length > 0){
 					await Promise.all(rawSchemas.map(async (rawSchema) => {
 						try {
@@ -207,15 +211,35 @@ module.exports = {
 							}
 							Object.assign(ctx.dbs[projectId].models, {[rawSchema.info.name]: models})
 							Object.assign(ctx.dbs[projectId].schemas, {[rawSchema.info.name]: rawSchema})
+							Object.assign(ctx.dbs[projectId].cache, {[rawSchema.info.name]: new nedb()})
 						} catch (err) {
 							reject(err)
 						}
 					}))
 				}
-				return resolve(`${projectId} schemas successfully cached`)
+				console.log(`${projectId} schemas successfully cached`)
+				return resolve(ctx.dbs[projectId].schemas)
 			} catch (err) {
 				return reject(err)
 			}
 		})
+	},
+	
+	async updateOne(ctx, projectId, schemaId) {
+		try {
+			const rawSchema = this.getOne(ctx, projectId, schemaId)
+			const models = await ctx.utils.db.buildModel(ctx, projectId, rawSchema)
+			if(!ctx.dbs[projectId].models){
+				ctx.dbs[projectId].models = {}
+			}
+			if(!ctx.dbs[projectId].schemas){
+				ctx.dbs[projectId].schemas = {}
+			}
+			Object.assign(ctx.dbs[projectId].models, {[rawSchema.info.name]: models})
+			Object.assign(ctx.dbs[projectId].schemas, {[rawSchema.info.name]: rawSchema})
+			return true
+		} catch (err) {
+			return err
+		}
 	}
 }

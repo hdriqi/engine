@@ -13,6 +13,7 @@ export default (ctx, params) => {
 				let operatorQuery = q.split('_')
 				// check if params.query contain operator
 				if(operatorQuery.length > 1){
+					console.log(q)
 					if(filters.where === '') filters.where = {}
 					let newKey = operatorQuery[0]
 					let operator = `$${operatorQuery[1]}`

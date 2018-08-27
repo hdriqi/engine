@@ -23,7 +23,7 @@ export default (ctx) => {
 		const originalType = Buffer.from(originalMetadata[1].split(' ')[1], 'base64').toString('ascii')
 		// SAVE TO CORE_DB -> MEDIA SCHEMA
 		try {
-			await ctx.utils.db.insert(ctx, {
+			const response = await ctx.utils.db.insert(ctx, {
 				projectId: ctx.CORE_DB,
 				schemaId: mySchema,
 				body: {
@@ -33,7 +33,8 @@ export default (ctx) => {
 					project: result.req.params.projectId,
 					owner: result.req.current._id
 				}
-			})	
+			})
+			ctx.cache[mySchema].insert(response)
 		} catch (err) {
 			console.log(err)
 		}
@@ -85,6 +86,7 @@ export default (ctx) => {
 			try {
 				const decoded = await ctx.utils.auth.verify(req)
 				req.current = decoded
+				// check if project exist
 				next()
 			} catch (err) {
 				res.status(400).json({

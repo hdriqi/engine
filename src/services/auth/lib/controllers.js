@@ -62,33 +62,32 @@ module.exports = {
 	 * @param {*} req 
 	 */
 	login(ctx, req) {
-		return new Promise((resolve, reject)=>{
+		return new Promise(async (resolve, reject)=>{
 			let [idKey, idVal] = req.body.username ? ['username', req.body.username] : ['email', req.body.email]
 
-			ctx.dbs[ctx.CORE_DB].models['users'].findOne({
-				[idKey]: idVal
-			})
-				.then((result)=>{
-					if(result){
-						bcrypt.compare(req.body.password, result.password)
-							.then((res)=>{
-								if(res){
-									let token = jwt.sign({
-										_id: result._id,
-										_role: result.role
-									}, process.env.JWT_SECRET, {expiresIn: '14d'})
-									resolve(token)
-								}
-								else reject('invalid username/password')
-							})
-					}
-					else{
-						reject('invalid username/password')
-					}
+			if(!idKey) {
+				return reject('Bad Request - parameter username/email is required')
+			}
+
+			try {
+				const doc = await ctx.dbs[ctx.CORE_DB].models['users'].findOne({
+					[idKey]: idVal
 				})
-				.catch((err)=>{
-					reject(err)
-				})
+				bcrypt.compare(req.body.password, doc.password)
+					.then((res)=>{
+						if(res){
+							let token = jwt.sign({
+								_id: doc._id,
+								_role: doc.role
+							}, process.env.JWT_SECRET, {expiresIn: '14d'})
+							return resolve(token)
+						}
+						return reject('invalid username/password')
+					})
+				ctx.dbs[ctx.CORE_DB].cache.users.insert(JSON.parse(JSON.stringify(doc)))
+			} catch (err) {
+				return err
+			}
 		})
 	},
 
@@ -101,14 +100,18 @@ module.exports = {
 		return new Promise(async (resolve, reject) => {
 			try {
 				const decoded = await ctx.utils.auth.verify(req)
-				ctx.cache.users.findOne({ _id: decoded._id }, async (err, doc) => {
-					if (!doc) {
-						doc = await ctx.utils.db.findOne(ctx, {
-							projectId: ctx.CORE_DB,
-							schemaId: 'users',
-							objectId: decoded._id
-						})
-						ctx.cache.users.insert(JSON.parse(JSON.stringify(doc)))
+				ctx.dbs[ctx.CORE_DB].cache.users.findOne({ _id: decoded._id }, async (err, doc) => {
+					if(!doc) {
+						try {
+							doc = await ctx.utils.db.findOne(ctx, {
+								projectId: ctx.CORE_DB,
+								schemaId: 'users',
+								objectKey: decoded._id
+							})
+							ctx.dbs[ctx.CORE_DB].cache.users.insert(JSON.parse(JSON.stringify(doc)))
+						} catch (err) {
+							return reject(err)	
+						}
 					}
 					return resolve(doc)
 				})
@@ -125,7 +128,7 @@ module.exports = {
 	// 			let result = await ctx.utils.db.modify(ctx, {
 	// 				projectId: ctx.CORE_DB,
 	// 				schemaId: 'users',
-	// 				objectId: decoded._id,
+	// 				objectKey: decoded._id,
 	// 				body: {
 	// 					username: req.body.username
 	// 				}

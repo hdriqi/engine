@@ -17,13 +17,15 @@
       "required": true
 		},
 		"project": {
-      "field": "single-line-text",
-      "type": "string",
-      "required": true
-    },
+      "field": "relation",
+			"type": "objectId",
+			"ref": "projects",
+			"required": true,
+			"autopopulate": true
+		},
     "owner": {
       "field": "relation",
-			"type": "string",
+			"type": "objectId",
 			"ref": "users",
 			"required": true,
 			"autopopulate": true

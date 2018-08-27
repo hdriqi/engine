@@ -1,9 +1,8 @@
 export default (schemaObj) => {
-	schemaObj.name = schemaObj.name.toLowerCase()
 	return `{
 		"info": {
-			"name": "${schemaObj.name}",
-			"id": "_id",
+			"name": "${schemaObj.newName ? schemaObj.newName : schemaObj.name}",
+			"key": "_id",
 			"desc": "${schemaObj.desc}"
 		},
 		"attributes": ${schemaObj.attributes ? JSON.stringify(schemaObj.attributes) : '{}'},

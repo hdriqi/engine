@@ -31,19 +31,20 @@ module.exports = {
 		myRouter.use(schemas(ctx))
 		myRouter.use(content(ctx))
 
-		myRouter.all('/projects', async(req, res, next) => {
-			console.log('projects middleware')
-			next()
-		})
+		// myRouter.all('/projects', async(req, res, next) => {
+		// 	console.log('projects middleware')
+		// 	next()
+		// })
 
 		myRouter.get('/projects', async (req, res) => {
 			try {
 				const response = await ctx.utils.db.find(ctx, {
 					projectId: ctx.CORE_DB,
 					schemaId: 'projects',
-					query: {
-						owner: req.body.owner
-					}
+					query: req.query
+					// query: {
+					// 	owner: req.body.owner
+					// }
 				})
 				res.status(200).json({
 					status: 'success',
@@ -56,9 +57,29 @@ module.exports = {
 				})
 			}
 		})
-		myRouter.post('/projects', async (req, res) => {
+		myRouter.post('/projects', ctx.utils.validate({
+			name: ['isRequired', 'isAlphanumeric']
+		}), async (req, res) => {
 			try {
 				const response = await projects.add(ctx, req)
+				res.status(200).json({
+					status: 'success',
+					data: response
+				})
+			} catch (err) {
+				res.status(400).json({
+					status: 'error',
+					message: err
+				})
+			}
+		})
+		myRouter.get('/projects/:projectId', async (req, res) => {
+			try {
+				const response = await ctx.utils.db.findOne(ctx, {
+					projectId: ctx.CORE_DB,
+					schemaId: 'projects',
+					objectKey: req.params.projectId
+				})
 				res.status(200).json({
 					status: 'success',
 					data: response

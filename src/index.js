@@ -13,6 +13,7 @@ import api from './services/api'
 import utils from './lib/utils'
 import schemas from './lib/models'
 import filtersBuilder from './lib/filtersBuilder'
+import filters from './lib/filters'
 
 class Engine {
 	constructor (opts) {
@@ -24,11 +25,9 @@ class Engine {
 		this.ENGINE_PATH = __dirname
 		this.utils = utils
 		this.filtersBuilder = filtersBuilder
+		this.filters = filters
 		this.dbs = {}
 		this.dbsConnection = {}
-		this.cache = {
-			users: new nedb()
-		}
 	}
 
 	async start () {
@@ -39,7 +38,7 @@ class Engine {
 		// Create connection to engine-core
 		Object.assign(this.dbsConnection, {[this.CORE_DB]: this.utils.db.coreConnection(this)})
 		Object.assign(this.dbs, {[this.CORE_DB]: {}})
-		// Cache core schemas (users and projects)
+		// Cache core schemas (users, projects and medias)
 		await Promise.all(Object.keys(schemas).map(async (k) => {
 			const rawSchema = schemas[k]
 			const models = await this.utils.db.buildModel(this, this.CORE_DB, rawSchema)
@@ -49,8 +48,12 @@ class Engine {
 			if(!this.dbs[this.CORE_DB].schemas){
 				this.dbs[this.CORE_DB].schemas = {}
 			}
+			if(!this.dbs[this.CORE_DB].cache){
+				this.dbs[this.CORE_DB].cache = {}
+			}
 			Object.assign(this.dbs[this.CORE_DB].models, {[rawSchema.info.name]: models})
 			Object.assign(this.dbs[this.CORE_DB].schemas, {[rawSchema.info.name]: rawSchema})
+			Object.assign(this.dbs[this.CORE_DB].cache, {[rawSchema.info.name]: new nedb()})
 		}))
 
 		// Cache all users project
@@ -62,8 +65,8 @@ class Engine {
 		// Cache all users schemas
 		// Read from schemas.json file
 		await Promise.all(listOfProjects.map(async (project) => {
-			Object.assign(this.dbsConnection, {[project.name]: this.utils.db.sideConnection(this.dbsConnection[this.CORE_DB], project.name)})
-			await this.utils.schema.update(this, project.name)
+			Object.assign(this.dbsConnection, {[project._id.toString()]: this.utils.db.sideConnection(this.dbsConnection[this.CORE_DB], project._id.toString())})
+			await this.utils.schema.update(this, project._id.toString())
 		}))
 
 		// Routes
