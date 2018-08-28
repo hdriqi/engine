@@ -51,7 +51,7 @@ function parseQuery(o) {
 
 	// const buf = Buffer.from(JSON.stringify({...filter.query, ...filter.config}), 'utf8')
 	// filter.cacheKey = XXhash.hash(buf, 0xCAFEBABE)
-	filter.cacheKey = JSON.stringify({...filter.query, ...filter.config})
+	filter.cacheKey = hash(JSON.stringify({...filter.query, ...filter.config}))
 	return filter
 }
 
