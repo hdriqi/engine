@@ -114,7 +114,7 @@ module.exports = {
 	current(ctx, req) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				const decoded = await ctx.utils.auth.verify(req)
+				const decoded = await ctx.utils.auth.verify(ctx, req)
 				ctx.dbs[ctx.CORE_DB].cache.users.single.findOne({ _id: decoded._id }, async (err, doc) => {
 					if(!doc) {
 						try {
@@ -135,25 +135,6 @@ module.exports = {
 			}
 		})
 	},
-
-	// currentUpdate(ctx, req) {
-	// 	return new Promise(async (resolve, reject) => {
-	// 		try {
-	// 			const decoded = await this.verify(req)
-	// 			let result = await ctx.utils.db.modify(ctx, {
-	// 				projectId: ctx.CORE_DB,
-	// 				schemaId: 'users',
-	// 				objectKey: decoded._id,
-	// 				body: {
-	// 					username: req.body.username
-	// 				}
-	// 			})
-	// 			resolve(result)
-	// 		} catch (err) {
-	// 			reject(err)
-	// 		}
-	// 	})
-	// },
 
 	/**
 	 * 

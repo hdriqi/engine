@@ -60,7 +60,7 @@ module.exports = {
 		return new Promise((resolve, reject)=>{
 			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId]){
 				const filters = ctx.filters(params.query)
-				ctx.dbs[params.projectId].cache[params.schemaId].bulk.findOne({key: filters.cacheKey})
+				ctx.dbs[params.projectId].cache[params.schemaId].query.findOne({key: filters.cacheKey})
 					.sort(filters.config.sort)
 					.skip(filters.config.skip)
 					.limit(filters.config.limit)
@@ -72,7 +72,7 @@ module.exports = {
 								.skip(filters.config.skip)
 								.limit(filters.config.limit)
 								.then((result)=>{
-									ctx.dbs[params.projectId].cache[params.schemaId].bulk.insert({
+									ctx.dbs[params.projectId].cache[params.schemaId].query.insert({
 										key: filters.cacheKey,
 										data: JSON.stringify(result)
 									})
@@ -83,22 +83,48 @@ module.exports = {
 								})
 						}
 						else{
-							console.log(doc)
+							console.log('read from cache')
 							return resolve(JSON.parse(doc.data))
 						}
 					})
-				// ctx.dbs[params.projectId].models[params.schemaId].find()
-				// 	.query(filters.query)
-				// 	.sort(filters.sort)
-				// 	.skip(filters.skip)
-				// 	.limit(filters.limit)
-				// 	.then((result)=>{
-				// 		ctx.dbs[params.projectId].cache[params.schemaId].insert(JSON.parse(JSON.stringify(result)))
-				// 		return resolve(result)
-				// 	})
-				// 	.catch((err)=>{
-				// 		return reject(err.message)
-				// 	})
+			}
+			else{
+				return reject('Bad Request')
+			}
+		})
+	},
+
+	findOneByQuery(ctx, params) {
+		console.log('findOneByQuery -> ', Object.values(params).join(' | '))
+		return new Promise((resolve, reject)=>{
+			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId]){
+				const filters = ctx.filters(params.query)
+				ctx.dbs[params.projectId].cache[params.schemaId].query.findOne({key: filters.cacheKey})
+					.exec((err, doc) => {
+						if(!doc) {
+							console.log('read from db')
+							ctx.dbs[params.projectId].models[params.schemaId].findOne(filters.query)
+								.then((result)=>{
+									if(result){
+										ctx.dbs[params.projectId].cache[params.schemaId].query.insert({
+											key: filters.cacheKey,
+											data: JSON.stringify(result)
+										})
+										return resolve(result)
+									}
+									else{
+										return reject('Bad Request - object not found')
+									}
+								})
+								.catch((err)=>{
+									return reject(err.message)
+								})
+						}
+						else{
+							console.log('read from cache')
+							return resolve(JSON.parse(doc.data))
+						}
+					})
 			}
 			else{
 				return reject('Bad Request')
@@ -135,7 +161,7 @@ module.exports = {
 								})
 						}
 						else{
-							console.log(doc)
+							console.log('read from cache')
 							return resolve(doc)
 						}
 					})
@@ -164,7 +190,7 @@ module.exports = {
 				newDoc.save()
 					.then((result)=>{
 						if(result){
-							ctx.dbs[params.projectId].cache[params.schemaId].bulk = new nedb
+							ctx.dbs[params.projectId].cache[params.schemaId].query = new nedb()
 							return resolve(result.toObject())
 						}
 						else{
@@ -195,7 +221,7 @@ module.exports = {
 				ctx.dbs[params.projectId].models[params.schemaId].findOneAndUpdate({[key]: params.objectKey}, { $set: params.body }, { new: true, rawResult: true })
 					.then((result)=>{
 						if(result){
-							ctx.dbs[params.projectId].cache[params.schemaId].bulk = new nedb
+							ctx.dbs[params.projectId].cache[params.schemaId].query = new nedb()
 							ctx.dbs[params.projectId].cache[params.schemaId].single.remove({[key]: params.objectKey})
 							return resolve(result.value)
 						}
@@ -219,6 +245,7 @@ module.exports = {
 	 * @param {projectId, schemaId, objectKey} params 
 	 */
 	delete(ctx, params) {
+		console.log(params)
 		// console.log('delete -> ', Object.values(params).join(' | '))
 		return new Promise(async (resolve, reject)=>{
 			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId] && params.objectKey){
@@ -226,7 +253,7 @@ module.exports = {
 				ctx.dbs[params.projectId].models[params.schemaId].deleteMany({[key]: params.objectKey})
 					.then((result)=>{
 						if(result.n > 0) {
-							ctx.dbs[params.projectId].cache[params.schemaId].bulk = new nedb
+							ctx.dbs[params.projectId].cache[params.schemaId].query = new nedb()
 							ctx.dbs[params.projectId].cache[params.schemaId].single.remove({[key]: params.objectKey})
 							return resolve(result)
 						}

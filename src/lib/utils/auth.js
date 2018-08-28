@@ -31,14 +31,46 @@ module.exports = {
 	 * 
 	 * @param {*} req 
 	 */
-	verify(req) {
-		return new Promise((resolve, reject)=>{
-			let token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : false
-			try {
-				var decoded = jwt.verify(token, process.env.JWT_SECRET)
-				return resolve(decoded)
-			} catch(err) {
-				return reject(err.message)
+	verify(ctx, req) {
+		return new Promise(async (resolve, reject) => {
+			if(req.headers.authorization) {
+				const headerAuth = req.headers.authorization.split(',')
+				let apiKey, authToken
+				if(headerAuth[0].includes('Bearer')){
+					// no access token present
+					apiKey = null
+					authToken = headerAuth[0].split(' ')[1]
+				}
+				else{
+					apiKey = headerAuth[0]
+					authToken = null
+				}
+				if(apiKey){
+					try {
+						await ctx.utils.db.findOneByQuery(ctx, {
+							projectId: ctx.CORE_DB,
+							schemaId: 'projects',
+							query: {
+								_id: req.subdomains[0],
+								apiKey: apiKey
+							}
+						})
+						return resolve(null)	
+					} catch (err) {
+						return reject(err)
+					}
+				}
+				else{
+					try {
+						var decoded = jwt.verify(authToken, process.env.JWT_SECRET)
+						return resolve(decoded)
+					} catch(err) {
+						return reject(err.message)
+					}
+				}
+			}
+			else{
+				reject('unauthorize')
 			}
 		})
 	},

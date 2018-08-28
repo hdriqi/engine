@@ -201,7 +201,7 @@ module.exports = {
 									}
 									Object.assign(ctx.dbs[projectId].models, {[parsedSchema.name]: models})
 									Object.assign(ctx.dbs[projectId].schemas, {[parsedSchema.name]: parsedSchema})
-									Object.assign(ctx.dbs[projectId].cache, {[parsedSchema.name]: {single: new nedb(), bulk: new nedb()}})
+									Object.assign(ctx.dbs[projectId].cache, {[parsedSchema.name]: {single: new nedb(), query: new nedb()}})
 									resolve()
 								} catch (err) {
 									reject(err)

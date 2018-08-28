@@ -54,7 +54,7 @@ class Engine {
 			}
 			Object.assign(this.dbs[this.CORE_DB].models, {[rawSchema.name]: models})
 			Object.assign(this.dbs[this.CORE_DB].schemas, {[rawSchema.name]: rawSchema})
-			Object.assign(this.dbs[this.CORE_DB].cache, {[rawSchema.name]: {single: new nedb(), bulk: new nedb()}})
+			Object.assign(this.dbs[this.CORE_DB].cache, {[rawSchema.name]: {single: new nedb(), query: new nedb()}})
 		}))
 
 		// Cache all users project

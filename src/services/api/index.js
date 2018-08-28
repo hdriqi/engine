@@ -1,6 +1,5 @@
 import express from 'express'
 import projects from './lib/projects'
-import medias from './lib/medias'
 import schemas from './lib/schemas'
 
 import uuidv4 from 'uuid/v4'
@@ -9,30 +8,24 @@ module.exports = {
 	router(ctx) {
 		const myRouter = express.Router()
 
-		// MUST HAVE JWT
-		// CHECK IF USERID HAVE ACCESS TO CURRENT PROJECT
-		myRouter.use('/projects', async(req, res, next) => {
-			console.log('projects middleware')
-			next()
-		})
-
-		myRouter.use(medias(ctx))
-		
-		myRouter.use(async (req, res, next) => {
-			if(req.method !== 'OPTIONS'){
-				try {
-					const user = await ctx.utils.auth.verify(req)
-					req.body.owner = user._id
-					next()
-				} catch (err) {
-					res.status(400).json({
-						status: 'error',
-						message: err
-					})
-				}
-			}
-			else{
+		myRouter.use('/projects/:projectId', async(req, res, next) => {
+			try {
+				const user = await ctx.utils.auth.verify(ctx, req)
+				console.log(user)
+				await ctx.utils.db.findOneByQuery(ctx, {
+					projectId: ctx.CORE_DB,
+					schemaId: 'projects',
+					query: {
+						_id: req.params.projectId,
+						owner: user._id
+					}
+				})
 				next()
+			} catch (err) {
+				res.status(400).json({
+					status: 'error',
+					message: `unauthorized`
+				})
 			}
 		})
 
@@ -81,6 +74,26 @@ module.exports = {
 					projectId: ctx.CORE_DB,
 					schemaId: 'projects',
 					objectKey: req.params.projectId
+				})
+				res.status(200).json({
+					status: 'success',
+					data: response
+				})
+			} catch (err) {
+				res.status(400).json({
+					status: 'error',
+					message: err
+				})
+			}
+		})
+		myRouter.get('/projects/:projectId/medias', async (req, res) => {
+			try {
+				const response = await ctx.utils.db.find(ctx, {
+					projectId: ctx.CORE_DB,
+					schemaId: 'medias',
+					query: {
+						project: req.params.projectId
+					}
 				})
 				res.status(200).json({
 					status: 'success',
