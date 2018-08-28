@@ -19,17 +19,6 @@ const rmdir = function(dir) {
 	fs.rmdirSync(dir)
 }
 
-// const projectCheck = (ctx, projectId) => {
-// 	const targetFolder = path.join(ctx.USERS_PROJECTS, projectId.toLowerCase())
-// 	return fs.existsSync(targetFolder) ? {
-// 		exist: true,
-// 		targetFolder: targetFolder
-// 	} : {
-// 		exist: false,
-// 		targetFolder: targetFolder
-// 	}
-// }
-
 module.exports = {
 	async add(ctx, req) {
 		try {
@@ -58,20 +47,11 @@ module.exports = {
 				query: req.query
 			})
 
-			const targetFolder = path.join(ctx.USERS_PROJECTS, req.params.projectId)
-
 			// DROP DATABASE
 			try {
 				ctx.dbsConnection[req.params.projectId].dropDatabase()
 				delete ctx.dbsConnection[req.params.projectId]
 				delete ctx.dbs[req.params.projectId]
-			} catch (err) {
-				return err
-			}
-
-			// REMOVE PROJECT FOLDER
-			try {
-				await rmdir(targetFolder)	
 			} catch (err) {
 				return err
 			}

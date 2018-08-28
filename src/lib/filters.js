@@ -1,4 +1,5 @@
 import XXhash from 'xxhash'
+import hash from 'object-hash'
 
 function parseQuery(o) {
 	var filter = {
@@ -48,8 +49,9 @@ function parseQuery(o) {
 	if ( ! filter.query.$and.length )
 		filter.query = {}
 
-	const buf = Buffer.from(JSON.stringify({...filter.query, ...filter.config}), 'utf8')
-	filter.cacheKey = XXhash.hash(buf, 0xCAFEBABE)
+	// const buf = Buffer.from(JSON.stringify({...filter.query, ...filter.config}), 'utf8')
+	// filter.cacheKey = XXhash.hash(buf, 0xCAFEBABE)
+	filter.cacheKey = JSON.stringify({...filter.query, ...filter.config})
 	return filter
 }
 
