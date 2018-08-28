@@ -1,5 +1,6 @@
 import path from 'path'
 import fs, { mkdirSync } from 'fs'
+import uuidv4 from 'uuid/v4'
 
 const rmdir = function(dir) {
 	var list = fs.readdirSync(dir)
@@ -32,6 +33,7 @@ const rmdir = function(dir) {
 module.exports = {
 	async add(ctx, req) {
 		try {
+			req.body.accessToken = uuidv4()
 			const result = await ctx.utils.db.insert(ctx, {
 				projectId: ctx.CORE_DB,
 				schemaId: 'projects',

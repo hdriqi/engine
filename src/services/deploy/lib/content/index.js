@@ -3,10 +3,34 @@ import express from 'express'
 export default (ctx) => {
 	const myRouter = express.Router()
 
-	myRouter.get('/projects/:projectId/schemas/:schemaId', async (req, res) => {
+	myRouter.get('/', async (req, res) => {
+		const projectId = req.subdomains[0]
+		try {
+			const response = await ctx.utils.db.findOne(ctx, {
+				projectId: ctx.CORE_DB,
+				schemaId: 'projects',
+				objectKey: projectId
+			})
+			res.status(200).json({
+				status: 'success',
+				data: {
+					projectId: response._id,
+					message: 'it works'
+				}
+			})
+		} catch (err) {
+			res.status(400).json({
+				status: 'error',
+				message: err
+			})
+		}
+	})
+
+	myRouter.get('/:schemaId', async (req, res) => {
+		const projectId = req.subdomains[0]
 		try {
 			const response = await ctx.utils.db.find(ctx, {
-				projectId: req.params.projectId,
+				projectId: projectId,
 				schemaId: req.params.schemaId,
 				query: req.query
 			})
@@ -22,11 +46,12 @@ export default (ctx) => {
 		}
 	})
 
-	myRouter.post('/projects/:projectId/schemas/:schemaId', async (req, res) => {
+	myRouter.post('/:schemaId', async (req, res) => {
+		const projectId = req.subdomains[0]
 		try {
 			const response = await ctx.utils.db.insert(ctx, {
 				body: req.body,
-				projectId: req.params.projectId,
+				projectId: projectId,
 				schemaId: req.params.schemaId,
 				query: req.query
 			})
@@ -42,10 +67,11 @@ export default (ctx) => {
 		}
 	})
 
-	myRouter.get('/projects/:projectId/schemas/:schemaId/:objectKey', async (req, res) => {
+	myRouter.get('/:schemaId/:objectKey', async (req, res) => {
+		const projectId = req.subdomains[0]
 		try {
 			const response = await ctx.utils.db.findOne(ctx, {
-				projectId: req.params.projectId,
+				projectId: projectId,
 				schemaId: req.params.schemaId,
 				objectKey: req.params.objectKey,
 				query: req.query
@@ -62,10 +88,11 @@ export default (ctx) => {
 		}
 	})
 
-	myRouter.put('/projects/:projectId/schemas/:schemaId/:objectKey', async (req, res) => {
+	myRouter.put('/:schemaId/:objectKey', async (req, res) => {
+		const projectId = req.subdomains[0]
 		try {
 			const response = await ctx.utils.db.modify(ctx, {
-				projectId: req.params.projectId,
+				projectId: projectId,
 				schemaId: req.params.schemaId,
 				body: req.body,
 				objectKey: req.params.objectKey,
@@ -83,10 +110,11 @@ export default (ctx) => {
 		}
 	})
 
-	myRouter.delete('/projects/:projectId/schemas/:schemaId/:objectKey', async (req, res) => {
+	myRouter.delete('/:schemaId/:objectKey', async (req, res) => {
+		const projectId = req.subdomains[0]
 		try {
 			const response = await ctx.utils.db.delete(ctx, {
-				projectId: req.params.projectId,
+				projectId: projectId,
 				schemaId: req.params.schemaId,
 				objectKey: req.params.objectKey,
 				query: req.query

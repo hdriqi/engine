@@ -17,7 +17,13 @@
 			"ref": "users",
 			"required": true,
 			"autopopulate": true
-		}
+		},
+		"accessToken": {
+      "field": "single-line-text",
+      "type": "string",
+      "required": true,
+    	"unique": true
+    }
   },
   "options": {
     "timestamps": true

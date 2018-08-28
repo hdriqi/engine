@@ -123,8 +123,13 @@ module.exports = {
 							console.log('read from db')
 							ctx.dbs[params.projectId].models[params.schemaId].findOne({[key]: params.objectKey})
 								.then((result)=>{
-									ctx.dbs[params.projectId].cache[params.schemaId].single.insert(JSON.parse(JSON.stringify(result)))
-									return resolve(result)
+									if(result){
+										ctx.dbs[params.projectId].cache[params.schemaId].single.insert(JSON.parse(JSON.stringify(result)))
+										return resolve(result)
+									}
+									else{
+										return reject('Bad Request - object not found')
+									}
 								})
 								.catch((err)=>{
 									return reject(err.message)
@@ -181,11 +186,11 @@ module.exports = {
 		return new Promise(async (resolve, reject)=>{
 			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId] && params.objectKey && params.body){
 				const key = ctx.dbs[params.projectId].schemas[params.schemaId].info.key
-				ctx.dbs[params.projectId].models[params.schemaId].findOneAndUpdate({[key]: params.objectKey}, { $set: params.body }, { rawResult: true })
+				ctx.dbs[params.projectId].models[params.schemaId].findOneAndUpdate({[key]: params.objectKey}, { $set: params.body }, { new: true, rawResult: true })
 					.then((result)=>{
 						ctx.dbs[params.projectId].cache[params.schemaId].bulk = new nedb
 						ctx.dbs[params.projectId].cache[params.schemaId].single.remove({[key]: params.objectKey})
-						return resolve(result)
+						return resolve(result.value)
 					})
 					.catch((err)=>{
 						return reject(err.message)

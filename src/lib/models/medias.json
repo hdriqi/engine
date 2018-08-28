@@ -23,13 +23,6 @@
 			"required": true,
 			"autopopulate": true
 		},
-    "owner": {
-      "field": "relation",
-			"type": "objectId",
-			"ref": "users",
-			"required": true,
-			"autopopulate": true
-		},
 		"extension": {
       "field": "single-line-text",
       "type": "string",

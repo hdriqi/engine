@@ -2,11 +2,19 @@ import express from 'express'
 import projects from './lib/projects'
 import medias from './lib/medias'
 import schemas from './lib/schemas'
-import content from './lib/content'
+
+import uuidv4 from 'uuid/v4'
 
 module.exports = {
 	router(ctx) {
 		const myRouter = express.Router()
+
+		// MUST HAVE JWT
+		// CHECK IF USERID HAVE ACCESS TO CURRENT PROJECT
+		myRouter.use('/projects', async(req, res, next) => {
+			console.log('projects middleware')
+			next()
+		})
 
 		myRouter.use(medias(ctx))
 		
@@ -29,12 +37,6 @@ module.exports = {
 		})
 
 		myRouter.use(schemas(ctx))
-		myRouter.use(content(ctx))
-
-		// myRouter.all('/projects', async(req, res, next) => {
-		// 	console.log('projects middleware')
-		// 	next()
-		// })
 
 		myRouter.get('/projects', async (req, res) => {
 			try {
@@ -91,7 +93,49 @@ module.exports = {
 				})
 			}
 		})
-		// delete all
+		myRouter.put('/projects/:projectId/token', async (req, res) => {
+			try {
+				req.body = {
+					accessToken: uuidv4()
+				}
+				const response = await ctx.utils.db.modify(ctx, {
+					projectId: ctx.CORE_DB,
+					schemaId: 'projects',
+					objectKey: req.params.projectId,
+					body: req.body
+				})
+				res.status(200).json({
+					status: 'success',
+					data: response
+				})
+			} catch (err) {
+				res.status(400).json({
+					status: 'error',
+					message: err
+				})
+			}
+		})
+		myRouter.put('/projects/:projectId', ctx.utils.validate({
+			name: ['isRequired', 'isAlphanumeric']
+		}), async (req, res) => {
+			try {
+				const response = await ctx.utils.db.modify(ctx, {
+					projectId: ctx.CORE_DB,
+					schemaId: 'projects',
+					objectKey: req.params.projectId,
+					body: req.body
+				})
+				res.status(200).json({
+					status: 'success',
+					data: response
+				})
+			} catch (err) {
+				res.status(400).json({
+					status: 'error',
+					message: err
+				})
+			}
+		})
 		myRouter.delete('/projects/:projectId', async (req, res) => {
 			try {
 				const response = await projects.delete(ctx, req)

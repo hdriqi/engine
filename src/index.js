@@ -9,6 +9,7 @@ import nedb from 'nedb'
 
 import auth from './services/auth'
 import api from './services/api'
+import deploy from './services/deploy'
 
 import utils from './lib/utils'
 import schemas from './lib/models'
@@ -77,7 +78,7 @@ class Engine {
 		// Routes
 		this.app.use(subdomain('auth', auth.router(this)))
 		this.app.use(subdomain('api', api.router(this)))
-		// this.app.use(media.router(this))
+		this.app.use(subdomain('*', deploy.router(this)))
 
 		this.app.use(function (req, res) {
 			res.status(400).json({
