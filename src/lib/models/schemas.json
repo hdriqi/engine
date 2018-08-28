@@ -16,7 +16,7 @@
       "required": true,
       "unique": true
 		},
-		"display": {
+		"displayName": {
       "field": "single-line-text",
       "type": "string",
       "required": true
