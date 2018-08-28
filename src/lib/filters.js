@@ -1,4 +1,3 @@
-import XXhash from 'xxhash'
 import hash from 'object-hash'
 
 function parseQuery(o) {

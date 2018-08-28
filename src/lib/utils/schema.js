@@ -26,6 +26,7 @@ module.exports = {
 					schemaId: mySchema,
 					body: {
 						name: objectKey,
+						displayName: schemaObj.name,
 						desc: schemaObj.desc,
 						project: projectId,
 						options: JSON.stringify({

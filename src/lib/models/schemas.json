@@ -16,6 +16,11 @@
       "required": true,
       "unique": true
 		},
+		"display": {
+      "field": "single-line-text",
+      "type": "string",
+      "required": true
+		},
 		"key": {
       "field": "single-line-text",
       "type": "string",
