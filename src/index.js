@@ -52,9 +52,9 @@ class Engine {
 			if(!this.dbs[this.CORE_DB].cache){
 				this.dbs[this.CORE_DB].cache = {}
 			}
-			Object.assign(this.dbs[this.CORE_DB].models, {[rawSchema.info.name]: models})
-			Object.assign(this.dbs[this.CORE_DB].schemas, {[rawSchema.info.name]: rawSchema})
-			Object.assign(this.dbs[this.CORE_DB].cache, {[rawSchema.info.name]: {single: new nedb(), bulk: new nedb()}})
+			Object.assign(this.dbs[this.CORE_DB].models, {[rawSchema.name]: models})
+			Object.assign(this.dbs[this.CORE_DB].schemas, {[rawSchema.name]: rawSchema})
+			Object.assign(this.dbs[this.CORE_DB].cache, {[rawSchema.name]: {single: new nedb(), bulk: new nedb()}})
 		}))
 
 		// Cache all users project

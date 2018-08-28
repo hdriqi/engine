@@ -1,9 +1,7 @@
 {
-  "info": {
-		"name": "users",
-		"key": "_id",
-		"desc": "Users schema"
-  },
+	"name": "users",
+	"key": "_id",
+	"desc": "Users schema",
   "attributes": {
     "username": {
       "field": "single-line-text",

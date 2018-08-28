@@ -1,9 +1,7 @@
 {
-  "info": {
-		"name": "projects",
-		"key": "_id",
-		"desc": "Users projects"
-  },
+	"name": "projects",
+	"key": "_id",
+	"desc": "Users projects",
   "attributes": {
     "name": {
       "field": "single-line-text",
@@ -18,7 +16,7 @@
 			"required": true,
 			"autopopulate": true
 		},
-		"accessToken": {
+		"apiKey": {
       "field": "single-line-text",
       "type": "string",
       "required": true,

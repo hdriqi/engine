@@ -33,7 +33,7 @@ const rmdir = function(dir) {
 module.exports = {
 	async add(ctx, req) {
 		try {
-			req.body.accessToken = uuidv4()
+			req.body.apiKey = uuidv4()
 			const result = await ctx.utils.db.insert(ctx, {
 				projectId: ctx.CORE_DB,
 				schemaId: 'projects',

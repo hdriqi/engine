@@ -19,7 +19,7 @@ export default (ctx) => {
 	})
 	myRouter.post('/projects/:projectId/schemas', ctx.utils.validate({
 		name: ['isRequired', 'isAlphanumeric'],
-		desc: true
+		desc: ['isOptional', 'isAny']
 	}),	async (req, res) => {
 		try {
 			const response = await ctx.utils.schema.add(ctx, req.params.projectId, {
@@ -37,19 +37,13 @@ export default (ctx) => {
 			})
 		}
 	})
-	myRouter.put('/projects/:projectId/schemas', ctx.utils.validate({
-		name: ['isRequired', 'isAlphanumeric'],
-		newName: ['isOptional', 'isAlphanumeric'],
-		desc: ['isRequired', 'isAny'],
-		attributes: ['isRequired', 'isJSON']
+	myRouter.put('/projects/:projectId/schemas/:schemaId', ctx.utils.validate({
+		desc: ['isOptional', 'isAny'],
+		attributes: ['isOptional', 'isJSON']
 	}), async (req, res) => {
 		try {
-			const response = await ctx.utils.schema.modify(ctx, req.params.projectId, {
-				name: req.body.name,
-				newName: req.body.newName,
-				desc: req.body.desc,
-				attributes: req.body.attributes
-			})
+			const params = Object.assign(req.body, {name: req.params.schemaId})
+			const response = await ctx.utils.schema.modify(ctx, req.params.projectId, params)
 			res.status(200).json({
 				status: 'success',
 				data: response
@@ -61,12 +55,10 @@ export default (ctx) => {
 			})
 		}
 	})
-	myRouter.delete('/projects/:projectId/schemas', ctx.utils.validate({
-		name: ['isRequired', 'isAlphanumeric']
-	}), async (req, res) => {
+	myRouter.delete('/projects/:projectId/schemas/:schemaId', async (req, res) => {
 		try {
 			const response = await ctx.utils.schema.delete(ctx, req.params.projectId, {
-				name: req.body.name
+				name: req.params.schemaId
 			})
 			res.status(200).json({
 				status: 'success',

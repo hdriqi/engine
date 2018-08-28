@@ -38,7 +38,7 @@ module.exports = {
 			schema.plugin(mongooseHidden({ defaultHidden: { password: true } }))
 		}
 
-		const model = ctx.dbsConnection[projectId].model(rawSchema.info.name, schema)
+		const model = ctx.dbsConnection[projectId].model(rawSchema.name, schema)
 		try {
 			await model.syncIndexes()
 		} catch (err) {
@@ -48,7 +48,6 @@ module.exports = {
 		}
 
 		return model
-
 	},
 
 	/**
@@ -116,7 +115,7 @@ module.exports = {
 		console.log('findOne -> ', Object.values(params).join(' | '))
 		return new Promise((resolve, reject)=>{
 			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId] && params.objectKey){
-				const key = ctx.dbs[params.projectId].schemas[params.schemaId].info.key
+				const key = ctx.dbs[params.projectId].schemas[params.schemaId].key
 				ctx.dbs[params.projectId].cache[params.schemaId].single.findOne({[key]: params.objectKey})
 					.exec((err, doc) => {
 						if(!doc) {
@@ -153,6 +152,7 @@ module.exports = {
 	 * @param {projectId, schemaId, body} params 
 	 */
 	insert(ctx, params) {
+		console.log(params)
 		// console.log('insert -> ', Object.values(params).join(' | '))
 		return new Promise(async (resolve, reject)=>{
 			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId] && params.body){
@@ -163,8 +163,13 @@ module.exports = {
 				let newDoc = new ctx.dbs[params.projectId].models[params.schemaId](attributes)
 				newDoc.save()
 					.then((result)=>{
-						ctx.dbs[params.projectId].cache[params.schemaId].bulk = new nedb
-						return resolve(result.toObject())
+						if(result){
+							ctx.dbs[params.projectId].cache[params.schemaId].bulk = new nedb
+							return resolve(result.toObject())
+						}
+						else{
+							return reject('Bad Request')
+						}
 					})
 					.catch((err)=>{
 						return reject(err.message)
@@ -182,15 +187,21 @@ module.exports = {
 	 * @param {projectId, schemaId, objectKey, body} params 
 	 */
 	modify(ctx, params) {
+		console.log(params)
 		// console.log('modify -> ', Object.values(params).join(' | '))
 		return new Promise(async (resolve, reject)=>{
 			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId] && params.objectKey && params.body){
-				const key = ctx.dbs[params.projectId].schemas[params.schemaId].info.key
+				const key = ctx.dbs[params.projectId].schemas[params.schemaId].key
 				ctx.dbs[params.projectId].models[params.schemaId].findOneAndUpdate({[key]: params.objectKey}, { $set: params.body }, { new: true, rawResult: true })
 					.then((result)=>{
-						ctx.dbs[params.projectId].cache[params.schemaId].bulk = new nedb
-						ctx.dbs[params.projectId].cache[params.schemaId].single.remove({[key]: params.objectKey})
-						return resolve(result.value)
+						if(result){
+							ctx.dbs[params.projectId].cache[params.schemaId].bulk = new nedb
+							ctx.dbs[params.projectId].cache[params.schemaId].single.remove({[key]: params.objectKey})
+							return resolve(result.value)
+						}
+						else{
+							return reject('Bad Request')
+						}
 					})
 					.catch((err)=>{
 						return reject(err.message)
@@ -211,7 +222,7 @@ module.exports = {
 		// console.log('delete -> ', Object.values(params).join(' | '))
 		return new Promise(async (resolve, reject)=>{
 			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId] && params.objectKey){
-				const key = ctx.dbs[params.projectId].schemas[params.schemaId].info.key
+				const key = ctx.dbs[params.projectId].schemas[params.schemaId].key
 				ctx.dbs[params.projectId].models[params.schemaId].deleteMany({[key]: params.objectKey})
 					.then((result)=>{
 						if(result.n > 0) {

@@ -1,9 +1,7 @@
 {
-  "info": {
-		"name": "medias",
-		"key": "name",
-		"desc": "core media schema"
-  },
+	"name": "medias",
+	"key": "name",
+	"desc": "core media schema",
   "attributes": {
     "name": {
       "field": "single-line-text",

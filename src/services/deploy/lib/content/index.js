@@ -31,7 +31,7 @@ export default (ctx) => {
 		try {
 			const response = await ctx.utils.db.find(ctx, {
 				projectId: projectId,
-				schemaId: req.params.schemaId,
+				schemaId: `${projectId}_${req.params.schemaId}`,
 				query: req.query
 			})
 			res.status(200).json({
@@ -52,7 +52,7 @@ export default (ctx) => {
 			const response = await ctx.utils.db.insert(ctx, {
 				body: req.body,
 				projectId: projectId,
-				schemaId: req.params.schemaId,
+				schemaId: `${projectId}_${req.params.schemaId}`,
 				query: req.query
 			})
 			res.status(200).json({
@@ -72,7 +72,7 @@ export default (ctx) => {
 		try {
 			const response = await ctx.utils.db.findOne(ctx, {
 				projectId: projectId,
-				schemaId: req.params.schemaId,
+				schemaId: `${projectId}_${req.params.schemaId}`,
 				objectKey: req.params.objectKey,
 				query: req.query
 			})
@@ -93,7 +93,7 @@ export default (ctx) => {
 		try {
 			const response = await ctx.utils.db.modify(ctx, {
 				projectId: projectId,
-				schemaId: req.params.schemaId,
+				schemaId: `${projectId}_${req.params.schemaId}`,
 				body: req.body,
 				objectKey: req.params.objectKey,
 				query: req.query
@@ -115,7 +115,7 @@ export default (ctx) => {
 		try {
 			const response = await ctx.utils.db.delete(ctx, {
 				projectId: projectId,
-				schemaId: req.params.schemaId,
+				schemaId: `${projectId}_${req.params.schemaId}`,
 				objectKey: req.params.objectKey,
 				query: req.query
 			})

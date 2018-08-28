@@ -1,0 +1,42 @@
+{
+	"name": "schemas",
+	"key": "name",
+	"desc": "core user's project schemas",
+  "attributes": {
+		"project": {
+      "field": "relation",
+			"type": "objectId",
+			"ref": "projects",
+			"required": true,
+			"autopopulate": true
+		},
+    "name": {
+      "field": "single-line-text",
+      "type": "string",
+      "required": true,
+      "unique": true
+		},
+		"key": {
+      "field": "single-line-text",
+      "type": "string",
+      "required": true,
+			"default": "_id"
+		},
+		"desc": {
+      "field": "multiple-line-text",
+      "type": "string"
+		},
+		"attributes": {
+			"field": "multiple-line-text",
+      "type": "string"
+		},
+		"options": {
+			"field": "multiple-line-text",
+      "type": "string",
+			"required": true
+		}
+  },
+  "options": {
+    "timestamps": true
+  }
+}

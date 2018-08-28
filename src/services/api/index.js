@@ -29,7 +29,7 @@ module.exports = {
 						status: 'error',
 						message: err
 					})
-				}	
+				}
 			}
 			else{
 				next()
@@ -96,7 +96,7 @@ module.exports = {
 		myRouter.put('/projects/:projectId/token', async (req, res) => {
 			try {
 				req.body = {
-					accessToken: uuidv4()
+					apiKey: uuidv4()
 				}
 				const response = await ctx.utils.db.modify(ctx, {
 					projectId: ctx.CORE_DB,
