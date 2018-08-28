@@ -64,28 +64,42 @@ module.exports = {
 	 */
 	login(ctx, req) {
 		return new Promise(async (resolve, reject)=>{
-			let [idKey, idVal] = req.body.username ? ['username', req.body.username] : ['email', req.body.email]
-
-			if(!idKey) {
+			let idKey, idVal
+			if(req.body.username) {
+				idKey = 'username'
+				idVal = req.body.username
+			}
+			else if(req.body.email){
+				idKey = 'email'
+				idVal = req.body.email
+			}
+			else{
 				return reject('Bad Request - parameter username/email is required')
 			}
+
+			console.log(idKey)
 
 			try {
 				const doc = await ctx.dbs[ctx.CORE_DB].models['users'].findOne({
 					[idKey]: idVal
 				})
-				bcrypt.compare(req.body.password, doc.password)
-					.then((res)=>{
-						if(res){
-							let token = jwt.sign({
-								_id: doc._id,
-								_role: doc.role
-							}, process.env.JWT_SECRET, {expiresIn: '14d'})
-							return resolve(token)
-						}
-						return reject('invalid username/password')
-					})
-				ctx.dbs[ctx.CORE_DB].cache.users.single.insert(JSON.parse(JSON.stringify(doc)))
+				if(doc){
+					bcrypt.compare(req.body.password, doc.password)
+						.then((res)=>{
+							if(res){
+								let token = jwt.sign({
+									_id: doc._id,
+									_role: doc.role
+								}, process.env.JWT_SECRET, {expiresIn: '14d'})
+								return resolve(token)
+							}
+							return reject('invalid username/password')
+						})
+					ctx.dbs[ctx.CORE_DB].cache.users.single.insert(JSON.parse(JSON.stringify(doc)))
+				}
+				else{
+					return reject('invalid username/password')
+				}
 			} catch (err) {
 				return err
 			}

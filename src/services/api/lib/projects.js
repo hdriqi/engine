@@ -1,5 +1,5 @@
 import path from 'path'
-import fs, { mkdirSync } from 'fs'
+import fs from 'fs'
 import uuidv4 from 'uuid/v4'
 
 const rmdir = function(dir) {
@@ -40,11 +40,6 @@ module.exports = {
 				body: req.body,
 				query: req.query
 			})
-
-			const targetFolder = path.join(ctx.USERS_PROJECTS, result._id.toString())
-			
-			mkdirSync(targetFolder)
-			mkdirSync(path.join(targetFolder, 'api'))
 
 			Object.assign(ctx.dbsConnection, {[result.name]: ctx.utils.db.sideConnection(ctx.dbsConnection[ctx.CORE_DB], result.name)})
 
