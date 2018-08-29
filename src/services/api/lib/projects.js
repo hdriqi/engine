@@ -9,13 +9,17 @@ module.exports = {
 			const result = await ctx.utils.db.insert(ctx, {
 				projectId: ctx.CORE_DB,
 				schemaId: 'projects',
-				body: req.body,
+				body: {
+					name: req.body.name,
+					owner: req.current._id,
+					apiKey: req.body.apiKey
+				},
 				query: req.query
 			})
 
 			Object.assign(ctx.dbsConnection, {[result.name]: ctx.utils.db.sideConnection(ctx.dbsConnection[ctx.CORE_DB], result.name)})
 
-			return `${result.name} successfully created`
+			return result
 		} catch (err) {
 			throw err
 		}
