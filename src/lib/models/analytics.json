@@ -1,0 +1,25 @@
+{
+	"name": "CORE_ANALYTICS",
+	"key": "_id",
+	"desc": "core analytics schema",
+  "attributes": {
+    "endpoint": {
+      "field": "single-line-text",
+      "type": "string",
+      "required": true
+		},
+		"userAgent": {
+      "field": "single-line-text",
+      "type": "string",
+      "required": true
+		},
+		"reqMethod": {
+      "field": "single-line-text",
+      "type": "string",
+      "required": true
+		}
+  },
+  "options": {
+    "timestamps": true
+  }
+}

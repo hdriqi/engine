@@ -1,4 +1,5 @@
 import nedb from 'nedb'
+import analyticsSchema from '../models/analytics.json'
 
 import validator from 'validator'
 
@@ -191,13 +192,20 @@ module.exports = {
 								try {
 									const models = await ctx.utils.db.buildModel(ctx, projectId, parsedSchema)
 									if(!ctx.dbs[projectId].models){
-										ctx.dbs[projectId].models = {}
+										const analyticsModel = await ctx.utils.db.buildModel(ctx, projectId, analyticsSchema)
+										ctx.dbs[projectId].models = {
+											[analyticsSchema.name]: analyticsModel
+										}
 									}
 									if(!ctx.dbs[projectId].schemas){
-										ctx.dbs[projectId].schemas = {}
+										ctx.dbs[projectId].schemas = {
+											[analyticsSchema.name]: analyticsSchema
+										}
 									}
 									if(!ctx.dbs[projectId].cache){
-										ctx.dbs[projectId].cache = {}
+										ctx.dbs[projectId].cache = {
+											[analyticsSchema.name]: {single: new nedb(), query: new nedb()}
+										}
 									}
 									Object.assign(ctx.dbs[projectId].models, {[parsedSchema.name]: models})
 									Object.assign(ctx.dbs[projectId].schemas, {[parsedSchema.name]: parsedSchema})

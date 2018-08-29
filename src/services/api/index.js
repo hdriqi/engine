@@ -1,23 +1,35 @@
 import express from 'express'
 import projects from './lib/projects'
 import schemas from './lib/schemas'
+import UIDGenerator from 'uid-generator'
 
-import uuidv4 from 'uuid/v4'
+const uidgen = new UIDGenerator()
 
 module.exports = {
 	router(ctx) {
 		const myRouter = express.Router()
 
-		myRouter.use('/projects/:projectId', async(req, res, next) => {
+		myRouter.use('/projects', async (req, res, next) => {
 			try {
 				const user = await ctx.utils.auth.verify(ctx, req)
-				console.log(user)
+				req.current = user
+				next()
+			} catch (err) {
+				res.status(400).json({
+					status: 'error',
+					message: `unauthorized`
+				})
+			}
+		})
+
+		myRouter.use('/projects/:projectId', async(req, res, next) => {
+			try {
 				await ctx.utils.db.findOneByQuery(ctx, {
 					projectId: ctx.CORE_DB,
 					schemaId: 'projects',
 					query: {
 						_id: req.params.projectId,
-						owner: user._id
+						owner: req.current._id
 					}
 				})
 				next()
@@ -36,10 +48,9 @@ module.exports = {
 				const response = await ctx.utils.db.find(ctx, {
 					projectId: ctx.CORE_DB,
 					schemaId: 'projects',
-					query: req.query
-					// query: {
-					// 	owner: req.body.owner
-					// }
+					query: {
+						owner: req.current._id
+					}
 				})
 				res.status(200).json({
 					status: 'success',
@@ -106,10 +117,28 @@ module.exports = {
 				})
 			}
 		})
+		myRouter.get('/projects/:projectId/analytics', async (req, res) => {
+			try {
+				const response = await ctx.utils.analytics.get(ctx, {
+					projectId: req.params.projectId,
+					query: req.query
+				})
+				res.status(200).json({
+					status: 'success',
+					data: response
+				})
+			} catch (err) {
+				res.status(400).json({
+					status: 'error',
+					message: err
+				})
+			}
+		})
 		myRouter.put('/projects/:projectId/token', async (req, res) => {
 			try {
+				const newApiKey = await uidgen.generate()
 				req.body = {
-					apiKey: uuidv4()
+					apiKey: newApiKey
 				}
 				const response = await ctx.utils.db.modify(ctx, {
 					projectId: ctx.CORE_DB,

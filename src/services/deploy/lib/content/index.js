@@ -34,6 +34,12 @@ export default (ctx) => {
 				schemaId: `${projectId}_${req.params.schemaId}`,
 				query: req.query
 			})
+			ctx.utils.analytics.save(ctx, {
+				projectId: projectId,
+				schemaId: req.params.schemaId,
+				userAgent: req.get('User-Agent'),
+				method: req.method
+			})
 			res.status(200).json({
 				status: 'success',
 				data: response
@@ -55,6 +61,12 @@ export default (ctx) => {
 				schemaId: `${projectId}_${req.params.schemaId}`,
 				query: req.query
 			})
+			ctx.utils.analytics.save(ctx, {
+				projectId: projectId,
+				schemaId: req.params.schemaId,
+				userAgent: req.get('User-Agent'),
+				method: req.method
+			})
 			res.status(200).json({
 				status: 'success',
 				data: response
@@ -75,6 +87,12 @@ export default (ctx) => {
 				schemaId: `${projectId}_${req.params.schemaId}`,
 				objectKey: req.params.objectKey,
 				query: req.query
+			})
+			ctx.utils.analytics.save(ctx, {
+				projectId: projectId,
+				schemaId: req.params.schemaId,
+				userAgent: req.get('User-Agent'),
+				method: req.method
 			})
 			res.status(200).json({
 				status: 'success',
@@ -98,6 +116,12 @@ export default (ctx) => {
 				objectKey: req.params.objectKey,
 				query: req.query
 			})
+			ctx.utils.analytics.save(ctx, {
+				projectId: projectId,
+				schemaId: req.params.schemaId,
+				userAgent: req.get('User-Agent'),
+				method: req.method
+			})
 			res.status(200).json({
 				status: 'success',
 				data: response
@@ -118,6 +142,12 @@ export default (ctx) => {
 				schemaId: `${projectId}_${req.params.schemaId}`,
 				objectKey: req.params.objectKey,
 				query: req.query
+			})
+			ctx.utils.analytics.save(ctx, {
+				projectId: projectId,
+				schemaId: req.params.schemaId,
+				userAgent: req.get('User-Agent'),
+				method: req.method
 			})
 			res.status(200).json({
 				status: 'success',

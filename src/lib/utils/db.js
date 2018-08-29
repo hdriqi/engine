@@ -268,5 +268,44 @@ module.exports = {
 				return reject('Bad Request')
 			}
 		})
-	}
+	},
+
+	/**
+	 * 
+	 * @param {*} ctx 
+	 * @param {projectId, schemaId} params 
+	 */
+	count(ctx, params) {
+		console.log('count -> ', params)
+		params.query['__COUNT__'] = true
+		return new Promise((resolve, reject)=>{
+			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId]){
+				const filters = ctx.filters(params.query)
+				ctx.dbs[params.projectId].cache[params.schemaId].query.findOne({key: filters.cacheKey})
+					.exec((err, doc) => {
+						if(!doc) {
+							console.log('read from db')
+							ctx.dbs[params.projectId].models[params.schemaId].countDocuments(filters.query)
+								.then((result)=>{
+									ctx.dbs[params.projectId].cache[params.schemaId].query.insert({
+										key: filters.cacheKey,
+										data: JSON.stringify(result)
+									})
+									return resolve(result)
+								})
+								.catch((err)=>{
+									return reject(err.message)
+								})
+						}
+						else{
+							console.log('read from cache')
+							return resolve(JSON.parse(doc.data))
+						}
+					})
+			}
+			else{
+				return reject('Bad Request')
+			}
+		})
+	},	
 }

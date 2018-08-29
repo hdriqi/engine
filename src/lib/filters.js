@@ -1,6 +1,6 @@
 import hash from 'object-hash'
 
-function parseQuery(o) {
+function parseQuery(o = {}) {
 	var filter = {
 		query : { $and: [] },
 		config : {
@@ -8,7 +8,7 @@ function parseQuery(o) {
 			skip: null,
 			limit: null
 		},
-		cacheKey: null
+		cacheKey: ''
 	}
 
 	for ( var i in o ) {
@@ -50,7 +50,7 @@ function parseQuery(o) {
 
 	// const buf = Buffer.from(JSON.stringify({...filter.query, ...filter.config}), 'utf8')
 	// filter.cacheKey = XXhash.hash(buf, 0xCAFEBABE)
-	filter.cacheKey = hash(JSON.stringify({...filter.query, ...filter.config}))
+	filter.cacheKey = hash(JSON.stringify(o))
 	return filter
 }
 

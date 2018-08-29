@@ -1,28 +1,11 @@
-import path from 'path'
-import fs from 'fs'
-import uuidv4 from 'uuid/v4'
+import UIDGenerator from 'uid-generator'
 
-const rmdir = function(dir) {
-	var list = fs.readdirSync(dir)
-	for(var i = 0; i < list.length; i++) {
-		var filename = path.join(dir, list[i])
-		var stat = fs.statSync(filename)
-		
-		if(filename == '.' || filename == '..') {
-			// pass these files
-		} else if(stat.isDirectory()) {
-			rmdir(filename)
-		} else {
-			fs.unlinkSync(filename)
-		}
-	}
-	fs.rmdirSync(dir)
-}
+const uidgen = new UIDGenerator()
 
 module.exports = {
 	async add(ctx, req) {
 		try {
-			req.body.apiKey = uuidv4()
+			req.body.apiKey = await uidgen.generate()
 			const result = await ctx.utils.db.insert(ctx, {
 				projectId: ctx.CORE_DB,
 				schemaId: 'projects',
