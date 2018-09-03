@@ -41,7 +41,7 @@ export default (ctx) => {
 	const myRouter = express.Router()
 
 	myRouter.all('/upload', async (req, res, next) => {
-		if(req.method === 'POST' || req.method === 'PATCH'){
+		if(req.method !== 'OPTIONS'){
 			try {
 				const decoded = await ctx.utils.auth.verify(ctx, req)
 				req.current = decoded
@@ -59,11 +59,10 @@ export default (ctx) => {
 	}, tusServer.handle.bind(tusServer))
 	
 	myRouter.all('/upload/*', async (req, res, next) => {
-		if(req.method === 'POST' || req.method === 'PATCH'){
+		if(req.method !== 'OPTIONS'){
 			try {
 				const decoded = await ctx.utils.auth.verify(ctx, req)
 				req.current = decoded
-				// check if project exist
 				next()
 			} catch (err) {
 				res.status(400).json({

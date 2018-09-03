@@ -141,10 +141,10 @@ module.exports = {
 	get(ctx, projectId) {
 		return new Promise(async (resolve, reject)=>{
 			if(ctx.dbs[projectId] && ctx.dbs[projectId].schemas){
-				console.log('read schemas from cache')
+				console.log(`read ${projectId} schemas from cache`)
 				return resolve(ctx.dbs[projectId].schemas)
 			}
-			console.log('read schemas from file')
+			console.log(`read ${projectId} schemas from file`)
 			try {
 				const schemas = await ctx.utils.db.find(ctx, {
 					projectId: ctx.CORE_DB,
@@ -174,54 +174,50 @@ module.exports = {
 				let rawSchemas
 				try {
 					rawSchemas = await self.get(ctx, projectId)
-				} catch (err) {
-					console.log(err)
-				}
-				if(rawSchemas.length > 0){
-					try {
-						await Promise.all(rawSchemas.map((rawSchema) => {
-							const parsedSchema = {
-								name: rawSchema.name,
-								key: rawSchema.key, 
-								desc: rawSchema.desc ,
-								attributes: validator.isJSON(rawSchema.attributes + '') ? JSON.parse(rawSchema.attributes) : {},
-								options: JSON.parse(rawSchema.options)
-							}
-							
-							return new Promise(async (resolve, reject) => {
-								try {
-									const models = await ctx.utils.db.buildModel(ctx, projectId, parsedSchema)
-									if(!ctx.dbs[projectId].models){
-										const analyticsModel = await ctx.utils.db.buildModel(ctx, projectId, analyticsSchema)
-										ctx.dbs[projectId].models = {
-											[analyticsSchema.name]: analyticsModel
-										}
-									}
-									if(!ctx.dbs[projectId].schemas){
-										ctx.dbs[projectId].schemas = {
-											[analyticsSchema.name]: analyticsSchema
-										}
-									}
-									if(!ctx.dbs[projectId].cache){
-										ctx.dbs[projectId].cache = {
-											[analyticsSchema.name]: {single: new nedb(), query: new nedb()}
-										}
-									}
-									Object.assign(ctx.dbs[projectId].models, {[parsedSchema.name]: models})
-									Object.assign(ctx.dbs[projectId].schemas, {[parsedSchema.name]: parsedSchema})
-									Object.assign(ctx.dbs[projectId].cache, {[parsedSchema.name]: {single: new nedb(), query: new nedb()}})
-									resolve()
-								} catch (err) {
-									reject(err)
-								}
-							})
-						}))	
-					} catch (err) {
-						return reject(err)
+					if(!ctx.dbs[projectId].models) {
+						Object.assign(ctx.dbs[projectId], {models : {}})
 					}
+					if(!ctx.dbs[projectId].schemas) {
+						Object.assign(ctx.dbs[projectId], {schemas : {}})
+					}
+					if(!ctx.dbs[projectId].cache) {
+						Object.assign(ctx.dbs[projectId], {cache : {}})
+					}
+				} catch (err) {
+					return reject(err)
 				}
-				console.log(`${projectId} schemas successfully cached`)
-				return resolve(ctx.dbs[projectId].schemas)
+				const analyticsModel = await ctx.utils.db.buildModel(ctx, projectId, analyticsSchema)
+				Object.assign(ctx.dbs[projectId].models, {[analyticsSchema.name]: analyticsModel})
+				Object.assign(ctx.dbs[projectId].schemas, {[analyticsSchema.name]: analyticsSchema})
+				Object.assign(ctx.dbs[projectId].cache, {[analyticsSchema.name]: {single: new nedb(), query: new nedb()}})
+				if(rawSchemas.length > 0){
+					await Promise.all(rawSchemas.map((rawSchema) => {
+						const parsedSchema = {
+							name: rawSchema.name,
+							key: rawSchema.key, 
+							desc: rawSchema.desc ,
+							attributes: validator.isJSON(rawSchema.attributes + '') ? JSON.parse(rawSchema.attributes) : {},
+							options: JSON.parse(rawSchema.options)
+						}
+						
+						return new Promise(async (resolve, reject) => {
+							try {
+								const models = await ctx.utils.db.buildModel(ctx, projectId, parsedSchema)
+								Object.assign(ctx.dbs[projectId].models, {[parsedSchema.name]: models})
+								Object.assign(ctx.dbs[projectId].schemas, {[parsedSchema.name]: parsedSchema})
+								Object.assign(ctx.dbs[projectId].cache, {[parsedSchema.name]: {single: new nedb(), query: new nedb()}})
+								resolve()
+							} catch (err) {
+								reject(err)
+							}
+						})
+					}))
+					console.log(`${projectId} schemas successfully cached (n=${Object.keys(ctx.dbs[projectId].models).length})`)
+					return resolve(ctx.dbs[projectId].schemas)
+				}
+				else{
+					return resolve([])
+				}
 			} catch (err) {
 				return reject(err)
 			}

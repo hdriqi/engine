@@ -19,6 +19,12 @@
       "field": "single-line-text",
       "type": "string",
       "required": true
+		},
+		"validEmail": {
+      "field": "single-line-text",
+      "type": "boolean",
+			"required": true,
+			"default": false
     },
     "role": {
       "field": "single-line-text",

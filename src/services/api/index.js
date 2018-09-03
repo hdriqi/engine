@@ -10,34 +10,38 @@ module.exports = {
 		const myRouter = express.Router()
 
 		myRouter.use('/projects', async (req, res, next) => {
-			try {
-				const user = await ctx.utils.auth.verify(ctx, req)
-				req.current = user
+			if(req.method !== 'OPTIONS'){
+				try {
+					const decoded = await ctx.utils.auth.verify(ctx, req)
+					req.current = decoded
+					next()
+				} catch (err) {
+					res.status(400).json({
+						status: 'error',
+						message: err
+					})
+				}
+			}
+			else{
 				next()
-			} catch (err) {
-				res.status(400).json({
-					status: 'error',
-					message: `unauthorized`
-				})
 			}
 		})
 
 		myRouter.use('/projects/:projectId', async(req, res, next) => {
-			try {
-				await ctx.utils.db.findOneByQuery(ctx, {
-					projectId: ctx.CORE_DB,
-					schemaId: 'projects',
-					query: {
-						_id: req.params.projectId,
-						owner: req.current._id
-					}
-				})
+			if(req.method !== 'OPTIONS'){
+				try {
+					const decoded = await ctx.utils.auth.verify(ctx, req)
+					req.current = decoded
+					next()
+				} catch (err) {
+					res.status(400).json({
+						status: 'error',
+						message: err
+					})
+				}
+			}
+			else{
 				next()
-			} catch (err) {
-				res.status(400).json({
-					status: 'error',
-					message: `unauthorized`
-				})
 			}
 		})
 
