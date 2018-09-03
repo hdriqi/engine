@@ -194,6 +194,7 @@ module.exports = {
 					await Promise.all(rawSchemas.map((rawSchema) => {
 						const parsedSchema = {
 							name: rawSchema.name,
+							displayName: rawSchema.displayName,
 							key: rawSchema.key, 
 							desc: rawSchema.desc ,
 							attributes: validator.isJSON(rawSchema.attributes + '') ? JSON.parse(rawSchema.attributes) : {},
