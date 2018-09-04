@@ -193,6 +193,7 @@ module.exports = {
 				if(rawSchemas.length > 0){
 					await Promise.all(rawSchemas.map((rawSchema) => {
 						const parsedSchema = {
+							_id: rawSchema._id,
 							name: rawSchema.name,
 							displayName: rawSchema.displayName,
 							key: rawSchema.key, 
