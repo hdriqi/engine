@@ -47,7 +47,7 @@ module.exports = {
 				}
 				if(apiKey){
 					try {
-						await ctx.utils.db.findOneByQuery(ctx, {
+						const response = await ctx.utils.db.findOneByQuery(ctx, {
 							projectId: ctx.CORE_DB,
 							schemaId: 'projects',
 							query: {
@@ -55,7 +55,7 @@ module.exports = {
 								apiKey: apiKey
 							}
 						})
-						return resolve(null)	
+						return resolve(response)	
 					} catch (err) {
 						return reject(err)
 					}

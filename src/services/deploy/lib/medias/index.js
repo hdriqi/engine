@@ -2,7 +2,7 @@ import fs from 'fs'
 
 import express from 'express'
 import mime from 'mime'
-import tus from 'tus-node-server'
+import tus from '@evius/tus-server'
 import path from 'path'
 import uuidv1 from 'uuid/v1'
 
