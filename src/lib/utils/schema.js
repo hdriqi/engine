@@ -57,19 +57,29 @@ module.exports = {
 	modify(ctx, projectId, schemaObj) {
 		const self = this
 		const objectKey = `${projectId}_${schemaObj.name}`
+		
+		let myBody = {
+			desc: schemaObj.desc,
+			attributes: schemaObj.attributes
+		}
+
+		if(!schemaObj.attributes || validator.isEmpty(schemaObj.attributes + '')) {
+			delete myBody.attributes
+		}
+
+		if(!schemaObj.desc || validator.isEmail(schemaObj.desc + '')) {
+			delete myBody.desc
+		}
+
+		console.log(myBody)
+
 		return new Promise(async (resolve, reject) => {
 			try {
 				await ctx.utils.db.modify(ctx, {
 					projectId: ctx.CORE_DB,
 					schemaId: 'schemas',
 					objectKey: objectKey,
-					body: {
-						desc: schemaObj.desc,
-						attributes: schemaObj.attributes,
-						options: JSON.stringify({
-							timestamps: true
-						})
-					}
+					body: myBody
 				})	
 			} catch (err) {
 				return reject(err)
