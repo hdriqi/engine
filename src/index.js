@@ -13,7 +13,6 @@ import deploy from './services/deploy'
 
 import utils from './lib/utils'
 import schemas from './lib/models'
-import filtersBuilder from './lib/filtersBuilder'
 import filters from './lib/filters'
 
 class Engine {
@@ -25,7 +24,6 @@ class Engine {
 		this.USERS_PROJECTS = path.join(__dirname, '..', '..', 'users-projects')
 		this.ENGINE_PATH = __dirname
 		this.utils = utils
-		this.filtersBuilder = filtersBuilder
 		this.filters = filters
 		this.dbs = {}
 		this.dbsConnection = {}
