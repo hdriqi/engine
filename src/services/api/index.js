@@ -138,6 +138,23 @@ module.exports = {
 				})
 			}
 		})
+		myRouter.get('/projects/:projectId/analytics_full', async (req, res) => {
+			try {
+				const response = await ctx.utils.analytics.getFull(ctx, {
+					projectId: req.params.projectId,
+					query: req.query
+				})
+				res.status(200).json({
+					status: 'success',
+					data: response
+				})
+			} catch (err) {
+				res.status(400).json({
+					status: 'error',
+					message: err
+				})
+			}
+		})
 		myRouter.put('/projects/:projectId/token', async (req, res) => {
 			try {
 				const newApiKey = await uidgen.generate()

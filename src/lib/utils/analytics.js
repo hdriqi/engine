@@ -32,7 +32,26 @@ module.exports = {
 			const response = await ctx.utils.db.count(ctx, {
 				projectId: params.projectId,
 				schemaId: 'CORE_ANALYTICS',
-				query: {}
+				query: params.query || {}
+			})
+			return response
+		} catch (err) {
+			console.log(err)
+			return err
+		}
+	},
+
+	/**
+	 * 
+	 * @param {*} ctx 
+	 * @param {projectId} params 
+	 */
+	async getFull (ctx, params) {
+		try {
+			const response = await ctx.utils.db.find(ctx, {
+				projectId: params.projectId,
+				schemaId: 'CORE_ANALYTICS',
+				query: params.query || {}
 			})
 			return response
 		} catch (err) {

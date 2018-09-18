@@ -5,7 +5,7 @@ export default (ctx) => {
 
 	myRouter.get('/projects/:projectId/schemas', async (req, res) => {
 		try {
-			const response = await ctx.utils.schema.get(ctx, req.params.projectId)
+			const response = Object.assign({}, await ctx.utils.schema.get(ctx, req.params.projectId))
 			delete response['CORE_ANALYTICS']
 			res.status(200).json({
 				status: 'success',
@@ -23,10 +23,10 @@ export default (ctx) => {
 		desc: ['isOptional', 'isAny']
 	}),	async (req, res) => {
 		try {
-			const response = await ctx.utils.schema.add(ctx, req.params.projectId, {
+			const response = Object.assign({}, await ctx.utils.schema.add(ctx, req.params.projectId, {
 				name: req.body.name,
 				desc: req.body.desc
-			})
+			}))
 			delete response['CORE_ANALYTICS']
 			res.status(200).json({
 				status: 'success',
@@ -45,7 +45,7 @@ export default (ctx) => {
 	}), async (req, res) => {
 		try {
 			const params = Object.assign(req.body, {name: req.params.schemaId})
-			const response = await ctx.utils.schema.modify(ctx, req.params.projectId, params)
+			const response = Object.assign({}, await ctx.utils.schema.modify(ctx, req.params.projectId, params))
 			delete response['CORE_ANALYTICS']
 			res.status(200).json({
 				status: 'success',
@@ -61,9 +61,9 @@ export default (ctx) => {
 	myRouter.delete('/projects/:projectId/schemas/:schemaId', async (req, res) => {
 		console.log(req.params.schemaId)
 		try {
-			const response = await ctx.utils.schema.delete(ctx, req.params.projectId, {
+			const response = Object.assign({}, await ctx.utils.schema.delete(ctx, req.params.projectId, {
 				name: req.params.schemaId
-			})
+			}))
 			delete response['CORE_ANALYTICS']
 			res.status(200).json({
 				status: 'success',

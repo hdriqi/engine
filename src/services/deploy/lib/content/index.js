@@ -44,6 +44,7 @@ export default (ctx) => {
 				status: 'success',
 				data: response
 			})
+			console.log(req.connection.bytesWritten)
 		} catch (err) {
 			res.status(400).json({
 				status: 'error',

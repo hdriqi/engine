@@ -86,7 +86,11 @@ export default (ctx) => {
 			
 			if(response.n > 0) {
 				const filePath = path.join(ctx.ENGINE_PATH, '..', 'upload', req.params.mediaKey)
-				fs.unlinkSync(filePath)
+				try {
+					fs.unlinkSync(filePath)	
+				} catch (err) {
+					console.log(err)
+				}
 			}
 
 			res.status(200).json({
@@ -105,6 +109,32 @@ export default (ctx) => {
 		const filePath = path.join(ctx.ENGINE_PATH, '..', 'upload', req.params.mediaKey)
 		res.type(req.params.mimeType)
 		res.sendFile(filePath)
+		res.on('finish', async () => {
+			try {
+				const data = await ctx.utils.db.findOne(ctx, {
+					projectId: ctx.CORE_DB,
+					schemaId: 'medias',
+					objectKey: req.params.mediaKey
+				})
+				if(!req.socket.prevBytesWritten) req.socket.prevBytesWritten = 0
+				const bytes = req.socket.bytesWritten - req.socket.prevBytesWritten
+				req.socket.prevBytesWritten = req.socket.bytesWritten
+				try {
+					await ctx.utils.db.insert(ctx, {
+						projectId: ctx.CORE_DB,
+						schemaId: 'bandwidths',
+						body: {
+							project: data.project._id,
+							bytes: bytes
+						}
+					})	
+				} catch (err) {
+					console.log(err)
+				}
+			} catch (err) {
+				console.log(err)
+			}
+		})
 	})
 
 	return myRouter

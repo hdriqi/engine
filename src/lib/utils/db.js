@@ -179,7 +179,7 @@ module.exports = {
 	 */
 	insert(ctx, params) {
 		console.log(params)
-		// console.log('insert -> ', Object.values(params).join(' | '))
+		console.log('insert -> ', params.projectId, params.schemaId)
 		return new Promise(async (resolve, reject)=>{
 			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId] && params.body){
 				let attributes = {}
