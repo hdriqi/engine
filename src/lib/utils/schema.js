@@ -1,5 +1,6 @@
 import nedb from 'nedb'
 import analyticsSchema from '../models/analytics.json'
+import bandwidthsSchema from '../models/bandwidths.json'
 
 import validator from 'validator'
 
@@ -200,6 +201,10 @@ module.exports = {
 				Object.assign(ctx.dbs[projectId].models, {[analyticsSchema.name]: analyticsModel})
 				Object.assign(ctx.dbs[projectId].schemas, {[analyticsSchema.name]: analyticsSchema})
 				Object.assign(ctx.dbs[projectId].cache, {[analyticsSchema.name]: {single: new nedb(), query: new nedb()}})
+				const bandwidthsModel = await ctx.utils.db.buildModel(ctx, projectId, bandwidthsSchema)
+				Object.assign(ctx.dbs[projectId].models, {[bandwidthsSchema.name]: bandwidthsModel})
+				Object.assign(ctx.dbs[projectId].schemas, {[bandwidthsSchema.name]: bandwidthsSchema})
+				Object.assign(ctx.dbs[projectId].cache, {[bandwidthsSchema.name]: {single: new nedb(), query: new nedb()}})
 				if(rawSchemas.length > 0){
 					await Promise.all(rawSchemas.map((rawSchema) => {
 						const parsedSchema = {

@@ -5,7 +5,8 @@
   "attributes": {
     "endpoint": {
       "field": "single-line-text",
-      "type": "string",
+			"type": "string",
+			"index": "text",
       "required": true
 		},
 		"userAgent": {

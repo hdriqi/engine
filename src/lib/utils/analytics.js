@@ -59,4 +59,18 @@ module.exports = {
 			return err
 		}
 	},
+
+	async getBandwidth (ctx, params) {
+		try {
+			const response = await ctx.utils.db.find(ctx, {
+				projectId: params.projectId,
+				schemaId: 'CORE_BANDWIDTHS',
+				query: params.query || {}
+			})
+			return response
+		} catch (err) {
+			console.log(err)
+			return err
+		}
+	},
 }

@@ -22,9 +22,8 @@ module.exports = {
 								owner: user._id
 							}
 						})
-						// next()
+						next()
 					}
-					next()
 				} catch (err) {
 					res.status(400).json({
 						status: 'error',

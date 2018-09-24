@@ -121,10 +121,10 @@ export default (ctx) => {
 				req.socket.prevBytesWritten = req.socket.bytesWritten
 				try {
 					await ctx.utils.db.insert(ctx, {
-						projectId: ctx.CORE_DB,
-						schemaId: 'bandwidths',
+						projectId: data.project._id,
+						schemaId: 'CORE_BANDWIDTHS',
 						body: {
-							project: data.project._id,
+							media: req.params.mediaKey,
 							bytes: bytes
 						}
 					})	

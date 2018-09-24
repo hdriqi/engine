@@ -1,14 +1,12 @@
 {
-	"name": "bandwidths",
+	"name": "CORE_BANDWIDTHS",
 	"key": "_id",
 	"desc": "core bandwidth schema",
   "attributes": {
-		"project": {
-      "field": "relation",
-			"type": "objectId",
-			"ref": "projects",
-			"required": true,
-			"autopopulate": true
+		"media": {
+			"field": "string",
+			"type": "string",
+			"required": true
 		},
 		"bytes": {
       "field": "number",
