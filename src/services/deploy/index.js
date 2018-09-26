@@ -13,7 +13,8 @@ module.exports = {
 			if(req.method !== 'OPTIONS'){
 				try {
 					const user = await ctx.utils.auth.verify(ctx, req)
-					if(user){
+					req.users = user
+					if(user.grant_type === 'jwt'){
 						await ctx.utils.db.findOneByQuery(ctx, {
 							projectId: ctx.CORE_DB,
 							schemaId: 'projects',
@@ -22,6 +23,9 @@ module.exports = {
 								owner: user._id
 							}
 						})
+						next()
+					}
+					else if(user.grant_type === 'api_key'){
 						next()
 					}
 				} catch (err) {

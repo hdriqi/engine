@@ -1,5 +1,16 @@
 import express from 'express'
 
+const saveAnalytics = (ctx, projectId, req) => {
+	if(req.users.grant_type !== 'jwt') {
+		ctx.utils.analytics.save(ctx, {
+			projectId: projectId,
+			schemaId: req.params.schemaId,
+			userAgent: req.get('User-Agent'),
+			method: req.method
+		})
+	}
+}
+
 export default (ctx) => {
 	const myRouter = express.Router()
 
@@ -34,12 +45,7 @@ export default (ctx) => {
 				schemaId: `${projectId}_${req.params.schemaId}`,
 				query: req.query
 			})
-			ctx.utils.analytics.save(ctx, {
-				projectId: projectId,
-				schemaId: req.params.schemaId,
-				userAgent: req.get('User-Agent'),
-				method: req.method
-			})
+			saveAnalytics(ctx, projectId, req)
 			res.status(200).json({
 				status: 'success',
 				data: response
@@ -62,12 +68,7 @@ export default (ctx) => {
 				schemaId: `${projectId}_${req.params.schemaId}`,
 				query: req.query
 			})
-			ctx.utils.analytics.save(ctx, {
-				projectId: projectId,
-				schemaId: req.params.schemaId,
-				userAgent: req.get('User-Agent'),
-				method: req.method
-			})
+			saveAnalytics(ctx, projectId, req)
 			res.status(200).json({
 				status: 'success',
 				data: response
@@ -89,12 +90,7 @@ export default (ctx) => {
 				objectKey: req.params.objectKey,
 				query: req.query
 			})
-			ctx.utils.analytics.save(ctx, {
-				projectId: projectId,
-				schemaId: req.params.schemaId,
-				userAgent: req.get('User-Agent'),
-				method: req.method
-			})
+			saveAnalytics(ctx, projectId, req)
 			res.status(200).json({
 				status: 'success',
 				data: response
@@ -117,12 +113,7 @@ export default (ctx) => {
 				objectKey: req.params.objectKey,
 				query: req.query
 			})
-			ctx.utils.analytics.save(ctx, {
-				projectId: projectId,
-				schemaId: req.params.schemaId,
-				userAgent: req.get('User-Agent'),
-				method: req.method
-			})
+			saveAnalytics(ctx, projectId, req)
 			res.status(200).json({
 				status: 'success',
 				data: response
@@ -144,12 +135,7 @@ export default (ctx) => {
 				objectKey: req.params.objectKey,
 				query: req.query
 			})
-			ctx.utils.analytics.save(ctx, {
-				projectId: projectId,
-				schemaId: req.params.schemaId,
-				userAgent: req.get('User-Agent'),
-				method: req.method
-			})
+			saveAnalytics(ctx, projectId, req)
 			res.status(200).json({
 				status: 'success',
 				data: response

@@ -56,6 +56,7 @@ module.exports = {
 							schemaId: 'projects',
 							query: query
 						})
+						response.grant_type = 'api_key'
 						return resolve(response)	
 					} catch (err) {
 						return reject(err)
@@ -64,6 +65,7 @@ module.exports = {
 				else{
 					try {
 						var decoded = jwt.verify(token, process.env.JWT_SECRET)
+						decoded.grant_type = 'jwt'
 						return resolve(decoded)
 					} catch(err) {
 						return reject(err.message)
