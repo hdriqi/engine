@@ -34,26 +34,27 @@ module.exports = {
 	verify(ctx, req) {
 		return new Promise(async (resolve, reject) => {
 			if(req.headers.authorization) {
-				const headerAuth = req.headers.authorization.split(',')
-				let apiKey, authToken
-				if(headerAuth[0].includes('Bearer')){
-					// no access token present
-					apiKey = null
-					authToken = headerAuth[0].split(' ')[1]
-				}
-				else{
-					apiKey = headerAuth[0]
-					authToken = null
-				}
-				if(apiKey){
+				const token = req.headers.authorization.substring(7)
+				// if apiKey
+				if(token.length === 23){
 					try {
+						let query
+						if(req.method === 'GET') {
+							query = {
+								_id: req.subdomains[0],
+								readApiKey: token
+							}
+						}
+						else{
+							query = {
+								_id: req.subdomains[0],
+								writeApiKey: token
+							}
+						}
 						const response = await ctx.utils.db.findOneByQuery(ctx, {
 							projectId: ctx.CORE_DB,
 							schemaId: 'projects',
-							query: {
-								_id: req.subdomains[0],
-								apiKey: apiKey
-							}
+							query: query
 						})
 						return resolve(response)	
 					} catch (err) {
@@ -62,7 +63,7 @@ module.exports = {
 				}
 				else{
 					try {
-						var decoded = jwt.verify(authToken, process.env.JWT_SECRET)
+						var decoded = jwt.verify(token, process.env.JWT_SECRET)
 						return resolve(decoded)
 					} catch(err) {
 						return reject(err.message)

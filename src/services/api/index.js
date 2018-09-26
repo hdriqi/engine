@@ -3,7 +3,7 @@ import projects from './lib/projects'
 import schemas from './lib/schemas'
 import UIDGenerator from 'uid-generator'
 
-const uidgen = new UIDGenerator()
+const uidgen = new UIDGenerator(null, 23)
 
 module.exports = {
 	router(ctx) {
@@ -173,11 +173,34 @@ module.exports = {
 			}
 		})
 
-		myRouter.put('/projects/:projectId/token', async (req, res) => {
+		myRouter.put('/projects/:projectId/token_read', async (req, res) => {
 			try {
 				const newApiKey = await uidgen.generate()
 				req.body = {
-					apiKey: newApiKey
+					readApiKey: newApiKey
+				}
+				const response = await ctx.utils.db.modify(ctx, {
+					projectId: ctx.CORE_DB,
+					schemaId: 'projects',
+					objectKey: req.params.projectId,
+					body: req.body
+				})
+				res.status(200).json({
+					status: 'success',
+					data: response
+				})
+			} catch (err) {
+				res.status(400).json({
+					status: 'error',
+					message: err
+				})
+			}
+		})
+		myRouter.put('/projects/:projectId/token_write', async (req, res) => {
+			try {
+				const newApiKey = await uidgen.generate()
+				req.body = {
+					writeApiKey: newApiKey
 				}
 				const response = await ctx.utils.db.modify(ctx, {
 					projectId: ctx.CORE_DB,

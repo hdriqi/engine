@@ -1,18 +1,20 @@
 import UIDGenerator from 'uid-generator'
 
-const uidgen = new UIDGenerator()
+const uidgen = new UIDGenerator(null, 23)
 
 module.exports = {
 	async add(ctx, req) {
 		try {
-			req.body.apiKey = await uidgen.generate()
+			const readApiKey = await uidgen.generate()
+			const writeApiKey = await uidgen.generate()
 			const result = await ctx.utils.db.insert(ctx, {
 				projectId: ctx.CORE_DB,
 				schemaId: 'projects',
 				body: {
 					name: req.body.name,
 					owner: req.current._id,
-					apiKey: req.body.apiKey
+					readApiKey: readApiKey,
+					writeApiKey: writeApiKey
 				},
 				query: req.query
 			})

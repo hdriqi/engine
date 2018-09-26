@@ -16,7 +16,13 @@
 			"required": true,
 			"autopopulate": true
 		},
-		"apiKey": {
+		"readApiKey": {
+      "field": "single-line-text",
+      "type": "string",
+      "required": true,
+    	"unique": true
+		},
+		"writeApiKey": {
       "field": "single-line-text",
       "type": "string",
       "required": true,

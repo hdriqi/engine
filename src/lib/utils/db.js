@@ -153,7 +153,7 @@ module.exports = {
 										return resolve(result)
 									}
 									else{
-										return reject('Bad Request - object not found')
+										return reject('object_not_found')
 									}
 								})
 								.catch((err)=>{
@@ -167,7 +167,7 @@ module.exports = {
 					})
 			}
 			else{
-				return reject('Bad Request')
+				return reject('bad_request')
 			}
 		})
 	},
@@ -194,7 +194,7 @@ module.exports = {
 							return resolve(result.toObject())
 						}
 						else{
-							return reject('Bad Request')
+							return reject('object_not_found')
 						}
 					})
 					.catch((err)=>{
@@ -202,7 +202,7 @@ module.exports = {
 					})
 			}
 			else{
-				return reject('Bad Request')
+				return reject('bad_request')
 			}
 		})
 	},
@@ -226,7 +226,7 @@ module.exports = {
 							return resolve(result.value)
 						}
 						else{
-							return reject('Bad Request')
+							return reject('object_not_found')
 						}
 					})
 					.catch((err)=>{
@@ -234,7 +234,7 @@ module.exports = {
 					})
 			}
 			else{
-				return reject('Bad Request')
+				return reject('bad_request')
 			}
 		})
 	},
@@ -257,7 +257,7 @@ module.exports = {
 							ctx.dbs[params.projectId].cache[params.schemaId].single.remove({[key]: params.objectKey})
 							return resolve(result)
 						}
-						return reject('Bad Request - object not found')
+						return reject('object_not_found')
 					})
 					.catch((err)=>{
 						console.log(err)
@@ -265,7 +265,7 @@ module.exports = {
 					})
 			}
 			else{
-				return reject('Bad Request')
+				return reject('bad_request')
 			}
 		})
 	},
