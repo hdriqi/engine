@@ -89,7 +89,7 @@ module.exports = {
 					})
 			}
 			else{
-				return reject('Bad Request')
+				return reject('bad_request')
 			}
 		})
 	},

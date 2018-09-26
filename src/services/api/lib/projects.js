@@ -19,9 +19,13 @@ module.exports = {
 				query: req.query
 			})
 
-			Object.assign(ctx.dbsConnection, {[result.name]: ctx.utils.db.sideConnection(ctx.dbsConnection[ctx.CORE_DB], result.name)})
-
-			return result
+			Object.assign(ctx.dbsConnection, {[result._id.toString()]: ctx.utils.db.sideConnection(ctx.dbsConnection[ctx.CORE_DB], result._id.toString())})
+			try {
+				await ctx.utils.schema.update(ctx, result._id)
+				return result
+			} catch (err) {
+				console.log(err)
+			}
 		} catch (err) {
 			throw err
 		}

@@ -180,7 +180,7 @@ module.exports = {
 				})
 				resolve(schemas)
 			} catch (err) {
-				reject(err.message)
+				reject(err)
 			}
 		})
 	},
