@@ -72,8 +72,6 @@ module.exports = {
 			delete myBody.desc
 		}
 
-		console.log(myBody)
-
 		return new Promise(async (resolve, reject) => {
 			try {
 				await ctx.utils.db.modify(ctx, {
@@ -81,13 +79,29 @@ module.exports = {
 					schemaId: 'schemas',
 					objectKey: objectKey,
 					body: myBody
-				})	
+				})
 			} catch (err) {
 				return reject(err)
 			}
 			
 			// UPDATE DBS
 			try {
+				const newSchema = Object.keys(JSON.parse(myBody.attributes))
+				const oldSchema = Object.keys(ctx.dbs[projectId].schemas[objectKey].attributes)
+				const difference = oldSchema.filter(x => !newSchema.includes(x))
+				if(difference[0]) {
+					ctx.dbs[projectId].models[objectKey].update({}, 
+						{ $unset: { [difference[0]]: true } },
+						{ multi: true, safe: true }
+					)
+						.then(()=>{
+							console.log('success delete column')
+						})
+						.catch((err)=>{
+							console.log('column delete error')
+							console.log(err)
+						})
+				}
 				const response = await self.update(ctx, projectId)
 				console.log(`${objectKey} successfully modified`)
 				return resolve(response)
