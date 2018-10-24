@@ -9,6 +9,24 @@ module.exports = {
 	router(ctx) {
 		const myRouter = express.Router()
 
+		myRouter.use((req, res, next) => {
+			if(process.env.PRODUCTION) {
+				const pattern = new RegExp(/evius.id$/igm)
+				if(pattern.test(req.headers.origin)) {
+					next()
+				}
+				else{
+					res.status(401).json({
+						status: 'unauthorized',
+						message: 'origin not allowed to access'
+					})
+				}
+			}
+			else{
+				next()
+			}
+		})
+
 		myRouter.use('/projects', async (req, res, next) => {
 			if(req.method !== 'OPTIONS'){
 				try {
