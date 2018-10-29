@@ -14,7 +14,9 @@ module.exports = {
 					name: req.body.name,
 					owner: req.current._id,
 					readApiKey: readApiKey,
-					writeApiKey: writeApiKey
+					writeApiKey: writeApiKey,
+					environment: 'dev',
+					cors: []
 				},
 				query: req.query
 			})

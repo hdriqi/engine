@@ -68,7 +68,7 @@ module.exports = {
 			delete myBody.attributes
 		}
 
-		if(!schemaObj.desc || validator.isEmail(schemaObj.desc + '')) {
+		if(!schemaObj.desc || validator.isEmpty(schemaObj.desc)) {
 			delete myBody.desc
 		}
 

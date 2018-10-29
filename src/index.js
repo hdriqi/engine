@@ -37,6 +37,7 @@ class Engine {
 		// Create connection to engine-core
 		Object.assign(this.dbsConnection, {[this.CORE_DB]: this.utils.db.coreConnection(this)})
 		Object.assign(this.dbs, {[this.CORE_DB]: {}})
+		
 		// Cache core schemas (users, projects and medias)
 		await Promise.all(Object.keys(schemas).map(async (k) => {
 			const rawSchema = schemas[k]
@@ -98,7 +99,7 @@ class Engine {
 
 const engine = new Engine({
 	CWD: __dirname,
-	PORT: 8080
+	PORT: process.env.PORT
 })
 
 engine.start()

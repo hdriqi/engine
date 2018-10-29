@@ -6,8 +6,7 @@
     "name": {
       "field": "single-line-text",
       "type": "string",
-      "required": true,
-      "unique": true
+      "required": true
     },
     "owner": {
       "field": "relation",
@@ -27,7 +26,17 @@
       "type": "string",
       "required": true,
     	"unique": true
-    }
+		},
+		"environment": {
+			"field": "single-line-text",
+      "type": "string",
+      "required": true
+		},
+		"cors": {
+			"field": "single-line-text",
+			"type": "array",
+			"required": true
+		}
   },
   "options": {
     "timestamps": true
