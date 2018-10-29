@@ -85,7 +85,7 @@ export default (ctx) => {
 			})
 			
 			if(response.n > 0) {
-				const filePath = path.join(ctx.ENGINE_PATH, '..', 'upload', req.params.mediaKey)
+				const filePath = process.env.PRODUCTION == 'true' ? path.join(ctx.ENGINE_PATH, '..', '..', 'upload', req.params.mediaKey) : path.join(ctx.ENGINE_PATH, '..', 'upload', req.params.mediaKey)
 				try {
 					fs.unlinkSync(filePath)	
 				} catch (err) {
@@ -106,7 +106,7 @@ export default (ctx) => {
 	})
 
 	myRouter.get('/:mediaKey/:mimeType', async (req, res) => {
-		const filePath = path.join(ctx.ENGINE_PATH, '..', 'upload', req.params.mediaKey)
+		const filePath = process.env.PRODUCTION == 'true' ? path.join(ctx.ENGINE_PATH, '..', '..', 'upload', req.params.mediaKey) : path.join(ctx.ENGINE_PATH, '..', 'upload', req.params.mediaKey)
 		res.type(req.params.mimeType)
 		res.sendFile(filePath)
 		res.on('finish', async () => {
