@@ -108,8 +108,6 @@ module.exports = {
 					schemaId: 'projects',
 					objectKey: req.params.projectId
 				})
-				const corsStringify = response.cors.join(',')
-				response.cors = corsStringify
 				res.status(200).json({
 					status: 'success',
 					data: response
@@ -243,6 +241,10 @@ module.exports = {
 			name: ['isRequired', 'isAlphanumeric']
 		}), async (req, res) => {
 			try {
+				if(req.body.cors) {
+					const split = req.body.cors.split(',')
+					req.body.cors = split
+				}
 				const response = await ctx.utils.db.modify(ctx, {
 					projectId: ctx.CORE_DB,
 					schemaId: 'projects',
