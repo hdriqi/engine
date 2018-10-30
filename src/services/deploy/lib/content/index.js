@@ -10,12 +10,14 @@ const corsOptionsDelegate = (ctx) => {
 				_id: req.subdomains[0]
 			}
 		})
+
+		const whiteListEvius = new RegExp(/evius\.id$/igm)
+		
 		req.project = project
-		console.log(req.project)
-		if(req.project) {
-			console.log(req.project.cors)
-		}
 		if(req.project && req.project.cors.length > 0 && req.project.cors.includes(req.headers.origin)) {
+			cb(null, true)
+		}
+		else if(whiteListEvius.test(req.headers.origin)) {
 			cb(null, true)
 		}
 		else{

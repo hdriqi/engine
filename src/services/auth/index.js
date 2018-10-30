@@ -5,6 +5,24 @@ module.exports = {
 	router(ctx) {
 		const myRouter = express.Router()
 
+		myRouter.use((req, res, next) => {
+			if(process.env.PRODUCTION == 'true') {
+				const pattern = new RegExp(/evius.id$/igm)
+				if(pattern.test(req.headers.origin)) {
+					next()
+				}
+				else{
+					res.status(401).json({
+						status: 'unauthorized',
+						message: 'origin not allowed to access'
+					})
+				}
+			}
+			else{
+				next()
+			}
+		})
+
 		myRouter.post('/login', ctx.utils.validate({
 			username: ['isOptional', 'isAlphanumeric'],
 			email: ['isOptional', 'isEmail'],
