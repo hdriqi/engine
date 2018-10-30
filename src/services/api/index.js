@@ -243,10 +243,6 @@ module.exports = {
 			name: ['isRequired', 'isAlphanumeric']
 		}), async (req, res) => {
 			try {
-				if(req.body.cors) {
-					const split = req.body.cors.split(',')
-					req.body.cors = split
-				}
 				const response = await ctx.utils.db.modify(ctx, {
 					projectId: ctx.CORE_DB,
 					schemaId: 'projects',
