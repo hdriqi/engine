@@ -20,6 +20,9 @@ const corsOptionsDelegate = (ctx) => {
 		else if(whiteListEvius.test(req.headers.origin)) {
 			cb(null, true)
 		}
+		else if(req.project && req.project.cors.length === 0) {
+			cb(null, true)
+		}
 		else{
 			cb(JSON.stringify({
 				message: `origin ${req.headers.origin} not allowed`
