@@ -59,6 +59,7 @@ module.exports = {
 						response.grant_type = 'api_key'
 						return resolve(response)
 					} catch (err) {
+						console.log(err)
 						return reject(err)
 					}
 				}
@@ -66,13 +67,28 @@ module.exports = {
 					try {
 						var decoded = jwt.verify(token, process.env.JWT_SECRET)
 						decoded.grant_type = 'jwt'
-						return resolve(decoded)
+						if(process.env.PRODUCTION == 'true') {
+							await ctx.utils.db.findOneByQuery(ctx, {
+								projectId: ctx.CORE_DB,
+								schemaId: 'users',
+								query: {
+									_id: decoded._id,
+									validEmail: 'true'
+								}
+							})
+							return resolve(decoded)
+						}
+						else{
+							return resolve(decoded)
+						}
 					} catch(err) {
-						return reject(err.message)
+						console.log(err)
+						return reject(err)
 					}
 				}
 			}
 			else{
+				console.log('unauthorize')
 				reject('unauthorize')
 			}
 		})

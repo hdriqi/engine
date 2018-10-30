@@ -95,7 +95,7 @@ module.exports = {
 	},
 
 	findOneByQuery(ctx, params) {
-		console.log('findOneByQuery -> ', Object.values(params).join(' | '))
+		console.log('findOneByQuery -> ', JSON.stringify(params))
 		return new Promise((resolve, reject)=>{
 			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId]){
 				const filters = ctx.filters(params.query)
