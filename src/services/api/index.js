@@ -108,6 +108,8 @@ module.exports = {
 					schemaId: 'projects',
 					objectKey: req.params.projectId
 				})
+				const corsStringify = response.cors.join(',')
+				response.cors = corsStringify
 				res.status(200).json({
 					status: 'success',
 					data: response
