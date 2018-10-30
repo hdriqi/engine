@@ -237,44 +237,6 @@ module.exports = {
 				})
 			}
 		})
-		myRouter.put('/projects/:projectId/env', async (req, res) => {
-			try {
-				const response = await ctx.utils.db.modify(ctx, {
-					projectId: ctx.CORE_DB,
-					schemaId: 'projects',
-					objectKey: req.params.projectId,
-					body: req.body
-				})
-				res.status(200).json({
-					status: 'success',
-					data: response
-				})
-			} catch (err) {
-				res.status(400).json({
-					status: 'error',
-					message: err
-				})
-			}
-		})
-		myRouter.put('/projects/:projectId/cors', async (req, res) => {
-			try {
-				const response = await ctx.utils.db.modify(ctx, {
-					projectId: ctx.CORE_DB,
-					schemaId: 'projects',
-					objectKey: req.params.projectId,
-					body: req.body
-				})
-				res.status(200).json({
-					status: 'success',
-					data: response
-				})
-			} catch (err) {
-				res.status(400).json({
-					status: 'error',
-					message: err
-				})
-			}
-		})
 		myRouter.put('/projects/:projectId', ctx.utils.validate({
 			name: ['isRequired', 'isAlphanumeric']
 		}), async (req, res) => {

@@ -64,7 +64,6 @@ export default (ctx) => {
 		}
 	})
 	myRouter.delete('/projects/:projectId/schemas/:schemaId', async (req, res) => {
-		console.log(req.params.schemaId)
 		try {
 			const response = Object.assign({}, await ctx.utils.schema.delete(ctx, req.params.projectId, {
 				name: req.params.schemaId
