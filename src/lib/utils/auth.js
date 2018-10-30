@@ -57,7 +57,7 @@ module.exports = {
 							query: query
 						})
 						response.grant_type = 'api_key'
-						return resolve(response)	
+						return resolve(response)
 					} catch (err) {
 						return reject(err)
 					}

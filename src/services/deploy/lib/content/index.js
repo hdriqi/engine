@@ -1,4 +1,31 @@
 import express from 'express'
+import cors from 'cors'
+
+const corsOptionsDelegate = (ctx) => {
+	return async (req, cb) => {
+		const project = await ctx.utils.db.findOneByQuery(ctx, {
+			projectId: ctx.CORE_DB,
+			schemaId: 'projects',
+			query: {
+				_id: req.subdomains[0]
+			}
+		})
+		req.project = project
+		console.log(req.project)
+		if(req.project) {
+			console.log(req.project.cors)
+		}
+		if(req.project && req.project.cors.length > 0 && req.project.cors.includes(req.headers.origin)) {
+			cb(null, true)
+		}
+		else{
+			cb(JSON.stringify({
+				message: `origin ${req.headers.origin} not allowed`
+			}))
+		}
+	}
+}
+
 
 const saveAnalytics = (ctx, projectId, req) => {
 	if(req.users.grant_type !== 'jwt') {
@@ -13,6 +40,39 @@ const saveAnalytics = (ctx, projectId, req) => {
 
 export default (ctx) => {
 	const myRouter = express.Router()
+
+	myRouter.use('/', cors(corsOptionsDelegate(ctx)))
+
+	myRouter.use('/', async (req, res, next) => {
+		if(req.method !== 'OPTIONS') {
+			try {
+				const user = await ctx.utils.auth.verify(ctx, req)
+				req.users = user
+				if(user.grant_type === 'jwt') {
+					await ctx.utils.db.findOneByQuery(ctx, {
+						projectId: ctx.CORE_DB,
+						schemaId: 'projects',
+						query: {
+							_id: req.subdomains[0],
+							owner: user._id
+						}
+					})
+					next()
+				}
+				else if(user.grant_type === 'api_key') {
+					next()
+				}
+			} catch (err) {
+				res.status(400).json({
+					status: 'error',
+					message: `unauthorized`
+				})
+			}
+		}
+		else{
+			next()
+		}
+	})
 
 	myRouter.get('/', async (req, res) => {
 		const projectId = req.subdomains[0]

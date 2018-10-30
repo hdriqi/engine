@@ -105,6 +105,26 @@ export default (ctx) => {
 		}
 	})
 
+	myRouter.get('/:mediaKey', async (req, res) => {
+		try {
+			const response = await ctx.utils.db.findOne(ctx, {
+				projectId: ctx.CORE_DB,
+				schemaId: mySchema,
+				objectKey: req.params.mediaKey
+			})
+			res.status(200).json({
+				status: 'success',
+				data: response
+			})
+		} catch (err) {
+			console.error(err)
+			res.status(400).json({
+				status: 'error',
+				message: err
+			})
+		}
+	})
+
 	myRouter.get('/:mediaKey/:mimeType', async (req, res) => {
 		const filePath = process.env.PRODUCTION == 'true' ? path.join(ctx.ENGINE_PATH, '..', '..', 'upload', req.params.mediaKey) : path.join(ctx.ENGINE_PATH, '..', 'upload', req.params.mediaKey)
 		res.type(req.params.mimeType)
