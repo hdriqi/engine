@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs, { existsSync } from 'fs'
 
 import express from 'express'
 import mime from 'mime'
@@ -38,42 +38,45 @@ export default (ctx) => {
 		}
 	})
 
+	const clientVerification = async (req, res, next) => {
+		if(req.method !== 'OPTIONS') {
+			try {
+				const user = await ctx.utils.auth.verify(ctx, req)
+				req.users = user
+				if(user.grant_type === 'jwt') {
+					await ctx.utils.db.findOneByQuery(ctx, {
+						projectId: ctx.CORE_DB,
+						schemaId: 'projects',
+						query: {
+							_id: req.subdomains[0],
+							owner: user._id
+						}
+					})
+					next()
+				}
+				else if(user.grant_type === 'api_key') {
+					next()
+				}
+			} catch (err) {
+				res.status(400).json({
+					status: 'error',
+					message: `unauthorized`
+				})
+			}
+		}
+		else{
+			next()
+		}
+	}
+
 	const myRouter = express.Router()
 
-	myRouter.all('/upload', async (req, res, next) => {
-		if(req.method !== 'OPTIONS'){
-			try {
-				const decoded = await ctx.utils.auth.verify(ctx, req)
-				req.current = decoded
-				next()
-			} catch (err) {
-				res.status(400).json({
-					status: 'error',
-					message: err
-				})
-			}
-		}
-		else{
-			next()
-		}
+	myRouter.all('/upload', (req, res, next) => {
+		clientVerification(req, res, next)
 	}, tusServer.handle.bind(tusServer))
 	
-	myRouter.all('/upload/*', async (req, res, next) => {
-		if(req.method !== 'OPTIONS'){
-			try {
-				const decoded = await ctx.utils.auth.verify(ctx, req)
-				req.current = decoded
-				next()
-			} catch (err) {
-				res.status(400).json({
-					status: 'error',
-					message: err
-				})
-			}
-		}
-		else{
-			next()
-		}
+	myRouter.all('/upload/*', (req, res, next) => {
+		clientVerification(req, res, next)
 	}, tusServer.handle.bind(tusServer))
 
 	myRouter.delete('/:mediaKey', async (req, res) => {
@@ -127,34 +130,42 @@ export default (ctx) => {
 
 	myRouter.get('/:mediaKey/:mimeType', async (req, res) => {
 		const filePath = process.env.PRODUCTION == 'true' ? path.join(ctx.ENGINE_PATH, '..', '..', 'upload', req.params.mediaKey) : path.join(ctx.ENGINE_PATH, '..', 'upload', req.params.mediaKey)
-		res.type(req.params.mimeType)
-		res.sendFile(filePath)
-		res.on('finish', async () => {
-			try {
-				const data = await ctx.utils.db.findOne(ctx, {
-					projectId: ctx.CORE_DB,
-					schemaId: 'medias',
-					objectKey: req.params.mediaKey
-				})
-				if(!req.socket.prevBytesWritten) req.socket.prevBytesWritten = 0
-				const bytes = req.socket.bytesWritten - req.socket.prevBytesWritten
-				req.socket.prevBytesWritten = req.socket.bytesWritten
+		if(existsSync(filePath)) {
+			res.type(req.params.mimeType)
+			res.sendFile(filePath)
+			res.on('finish', async () => {
 				try {
-					await ctx.utils.db.insert(ctx, {
-						projectId: data.project._id,
-						schemaId: 'CORE_BANDWIDTHS',
-						body: {
-							media: req.params.mediaKey,
-							bytes: bytes
-						}
-					})	
+					const data = await ctx.utils.db.findOne(ctx, {
+						projectId: ctx.CORE_DB,
+						schemaId: 'medias',
+						objectKey: req.params.mediaKey
+					})
+					if(!req.socket.prevBytesWritten) req.socket.prevBytesWritten = 0
+					const bytes = req.socket.bytesWritten - req.socket.prevBytesWritten
+					req.socket.prevBytesWritten = req.socket.bytesWritten
+					try {
+						await ctx.utils.db.insert(ctx, {
+							projectId: data.project._id,
+							schemaId: 'CORE_BANDWIDTHS',
+							body: {
+								media: req.params.mediaKey,
+								bytes: bytes
+							}
+						})	
+					} catch (err) {
+						console.log(err)
+					}
 				} catch (err) {
 					console.log(err)
 				}
-			} catch (err) {
-				console.log(err)
-			}
-		})
+			})
+		}
+		else{
+			res.status(400).json({
+				status: 'error',
+				message: `object_not_found`
+			})
+		}
 	})
 
 	return myRouter

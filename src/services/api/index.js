@@ -45,24 +45,6 @@ module.exports = {
 			}
 		})
 
-		myRouter.use('/projects/:projectId', async(req, res, next) => {
-			if(req.method !== 'OPTIONS'){
-				try {
-					const decoded = await ctx.utils.auth.verify(ctx, req)
-					req.current = decoded
-					next()
-				} catch (err) {
-					res.status(400).json({
-						status: 'error',
-						message: err
-					})
-				}
-			}
-			else{
-				next()
-			}
-		})
-
 		myRouter.use(schemas(ctx))
 
 		myRouter.get('/projects', async (req, res) => {
@@ -241,7 +223,7 @@ module.exports = {
 			name: ['isRequired', 'isAlphanumeric']
 		}), async (req, res) => {
 			try {
-				if(req.body.cors) {
+				if(req.body.cors.length > 0) {
 					const split = req.body.cors.split(',')
 					req.body.cors = split
 				}
