@@ -11,7 +11,8 @@ module.exports = {
 	 */
 	coreConnection(ctx) {
 		return mongoose.createConnection(`mongodb://127.0.0.1:27017/${ctx.CORE_DB}`, {
-			useNewUrlParser: true
+			useNewUrlParser: true,
+			autoIndex: false
 		})
 	},
 
@@ -31,7 +32,8 @@ module.exports = {
 	 * @param {object} rawSchema 
 	 */
 	async buildModel(ctx, projectId, rawSchema) {
-		let schema = new mongoose.Schema(rawSchema.attributes, rawSchema.options)
+		const options = { autoIndex: false, ...rawSchema.options }
+		let schema = new mongoose.Schema(rawSchema.attributes, options)
 		schema.plugin(uniqueValidator)
 		schema.plugin(autopopulate)
 		if(projectId === ctx.CORE_DB){

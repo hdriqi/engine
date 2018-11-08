@@ -68,7 +68,7 @@ module.exports = {
 			delete myBody.attributes
 		}
 
-		if(!schemaObj.desc || validator.isEmpty(schemaObj.desc)) {
+		if(!schemaObj.desc) {
 			delete myBody.desc
 		}
 
@@ -83,31 +83,39 @@ module.exports = {
 			} catch (err) {
 				return reject(err)
 			}
-			
-			// UPDATE DBS
-			try {
-				const newSchema = Object.keys(JSON.parse(myBody.attributes))
-				const oldSchema = Object.keys(ctx.dbs[projectId].schemas[objectKey].attributes)
-				const difference = oldSchema.filter(x => !newSchema.includes(x))
-				if(difference[0]) {
-					ctx.dbs[projectId].models[objectKey].update({}, 
-						{ $unset: { [difference[0]]: true } },
-						{ multi: true, safe: true }
-					)
-						.then(()=>{
-							console.log('success delete column')
-						})
-						.catch((err)=>{
-							console.log('column delete error')
-							console.log(err)
-						})
+
+			if(myBody.attributes) {
+				// UPDATE DBS
+				try {
+					const parseBody = JSON.parse(myBody.attributes)
+					const newSchema = Object.keys(parseBody)
+					const oldSchema = Object.keys(ctx.dbs[projectId].schemas[objectKey].attributes)
+					const difference = oldSchema.filter(x => !newSchema.includes(x))
+					if(difference[0]) {
+						ctx.dbs[projectId].models[objectKey].update({}, 
+							{ $unset: { [difference[0]]: true } },
+							{ multi: true, safe: true }
+						)
+							.then(()=>{
+								console.log('success delete column')
+							})
+							.catch((err)=>{
+								console.log('column delete error')
+								console.log(err)
+							})
+					}
+					const response = await self.update(ctx, projectId)
+					console.log(`${objectKey} successfully modified`)
+					return resolve(response)
+				} catch (err) {
+					console.log(err)
+					return reject(err)
 				}
+			}
+			else{
 				const response = await self.update(ctx, projectId)
 				console.log(`${objectKey} successfully modified`)
 				return resolve(response)
-			} catch (err) {
-				console.log(err)
-				return reject(err)
 			}
 		})
 	},
