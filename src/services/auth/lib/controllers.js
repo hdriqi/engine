@@ -77,11 +77,10 @@ module.exports = {
 				return reject('Bad Request - parameter username/email is required')
 			}
 
-			console.log(idKey)
-
 			try {
 				const doc = await ctx.dbs[ctx.CORE_DB].models['users'].findOne({
-					[idKey]: idVal
+					[idKey]: idVal,
+					validEmail: 'true'
 				})
 				if(doc){
 					bcrypt.compare(req.body.password, doc.password)
@@ -98,7 +97,7 @@ module.exports = {
 					ctx.dbs[ctx.CORE_DB].cache.users.single.insert(JSON.parse(JSON.stringify(doc)))
 				}
 				else{
-					return reject('invalid username/password')
+					return reject('private beta only')
 				}
 			} catch (err) {
 				return err
