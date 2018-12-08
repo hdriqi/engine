@@ -109,21 +109,41 @@ export default (ctx) => {
 	})
 
 	myRouter.get('/:mediaKey', async (req, res) => {
-		try {
-			const response = await ctx.utils.db.findOne(ctx, {
-				projectId: ctx.CORE_DB,
-				schemaId: mySchema,
-				objectKey: req.params.mediaKey
+		const filePath = process.env.PRODUCTION == 'true' ? path.join(ctx.ENGINE_PATH, '..', '..', 'upload', req.params.mediaKey) : path.join(ctx.ENGINE_PATH, '..', 'upload', req.params.mediaKey)
+		if(existsSync(filePath)) {
+			res.type(req.params.mimeType)
+			res.sendFile(filePath)
+			res.on('finish', async () => {
+				try {
+					const data = await ctx.utils.db.findOne(ctx, {
+						projectId: ctx.CORE_DB,
+						schemaId: 'medias',
+						objectKey: req.params.mediaKey
+					})
+					if(!req.socket.prevBytesWritten) req.socket.prevBytesWritten = 0
+					const bytes = req.socket.bytesWritten - req.socket.prevBytesWritten
+					req.socket.prevBytesWritten = req.socket.bytesWritten
+					try {
+						await ctx.utils.db.insert(ctx, {
+							projectId: data.project._id,
+							schemaId: 'CORE_BANDWIDTHS',
+							body: {
+								media: req.params.mediaKey,
+								bytes: bytes
+							}
+						})	
+					} catch (err) {
+						console.log(err)
+					}
+				} catch (err) {
+					console.log(err)
+				}
 			})
-			res.status(200).json({
-				status: 'success',
-				data: response
-			})
-		} catch (err) {
-			console.error(err)
+		}
+		else{
 			res.status(400).json({
 				status: 'error',
-				message: err
+				message: `object_not_found`
 			})
 		}
 	})
