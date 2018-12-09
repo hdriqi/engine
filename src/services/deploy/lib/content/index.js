@@ -12,12 +12,15 @@ const corsOptionsDelegate = (ctx) => {
 		})
 
 		const whiteListEvius = new RegExp(/evius\.id$/igm)
+
+		const source = req.headers.origin | req.headers.host
+		console.log(`${source} requesting access`)
 		
 		req.project = project
-		if(req.project && req.project.cors.length > 0 && req.project.cors.includes(req.headers.origin)) {
+		if(req.project && req.project.cors.length > 0 && req.project.cors.includes(source)) {
 			cb(null, true)
 		}
-		else if(whiteListEvius.test(req.headers.origin)) {
+		else if(whiteListEvius.test(source)) {
 			cb(null, true)
 		}
 		else if(req.project && req.project.cors.length === 0) {
@@ -25,7 +28,7 @@ const corsOptionsDelegate = (ctx) => {
 		}
 		else{
 			cb(JSON.stringify({
-				message: `origin ${req.headers.origin} not allowed`
+				message: `origin ${source} not allowed`
 			}))
 		}
 	}
