@@ -13,7 +13,7 @@ const corsOptionsDelegate = (ctx) => {
 
 		const whiteListEvius = new RegExp(/evius\.id$/igm)
 
-		const source = req.headers.origin | req.headers.host
+		const source = req.headers.origin || req.headers.host
 		console.log(`${source} requesting access`)
 		
 		req.project = project
