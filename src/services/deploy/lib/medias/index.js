@@ -4,6 +4,8 @@ import express from 'express'
 import tus from '@evius/tus-server'
 import path from 'path'
 import uuidv1 from 'uuid/v1'
+import mime from 'mime'
+import sharp from 'sharp'
 
 const mySchema = 'medias'
 
@@ -149,9 +151,32 @@ export default (ctx) => {
 
 	myRouter.get('/:mediaKey/:mimeType*', async (req, res) => {
 		const filePath = process.env.PRODUCTION == 'true' ? path.join(ctx.ENGINE_PATH, '..', '..', 'upload', req.params.mediaKey) : path.join(ctx.ENGINE_PATH, '..', 'upload', req.params.mediaKey)
+		
 		if(existsSync(filePath)) {
-			res.type(req.params.mimeType + req.params['0'])
-			res.sendFile(filePath)
+			const width = parseInt(req.query.w) || parseInt(req.query.width) || null
+			const height = parseInt(req.query.h) || parseInt(req.query.height) || null
+			const crop = req.query.crop || req.query.c
+
+			if(req.params.mimeType === 'image' && (width || height || crop)) {
+				sharp(filePath)
+					.resize(width, height, {
+						fit: crop
+					})
+					.toBuffer()
+					.then((data) => {
+						res.type(req.params.mimeType + req.params['0'])
+						res.send(data)
+					})
+					.catch((err) => {
+						console.log(err)
+						res.send(err)
+					})
+			}
+			else{
+				res.type(req.params.mimeType + req.params['0'])
+				res.sendFile(filePath)
+			}
+				
 			res.on('finish', async () => {
 				try {
 					const data = await ctx.utils.db.findOne(ctx, {
