@@ -1,7 +1,6 @@
 import fs, { existsSync } from 'fs'
 
 import express from 'express'
-import mime from 'mime'
 import tus from '@evius/tus-server'
 import path from 'path'
 import uuidv1 from 'uuid/v1'
@@ -29,7 +28,7 @@ export default (ctx) => {
 				body: {
 					name: result.file.id,
 					originalName: originalName,
-					extension: mime.getExtension(originalType),
+					extension: originalType,
 					project: result.req.subdomains[0]
 				}
 			})
@@ -148,10 +147,10 @@ export default (ctx) => {
 		}
 	})
 
-	myRouter.get('/:mediaKey/:mimeType', async (req, res) => {
+	myRouter.get('/:mediaKey/:mimeType*', async (req, res) => {
 		const filePath = process.env.PRODUCTION == 'true' ? path.join(ctx.ENGINE_PATH, '..', '..', 'upload', req.params.mediaKey) : path.join(ctx.ENGINE_PATH, '..', 'upload', req.params.mediaKey)
 		if(existsSync(filePath)) {
-			res.type(req.params.mimeType)
+			res.type(req.params.mimeType + req.params['0'])
 			res.sendFile(filePath)
 			res.on('finish', async () => {
 				try {
