@@ -158,7 +158,7 @@ export default (ctx) => {
 			const height = parseInt(req.query.h) || parseInt(req.query.height) || null
 			const crop = req.query.crop || req.query.c
 
-			if((req.params.mimeType === 'image' || imgExtensions.includes(req.params['0'].toLowerCase())) && (width || height || crop)) {
+			if((imgExtensions.includes(req.params.mimeType) || req.params.mimeType === 'image') && (width || height || crop)) {
 				sharp(filePath)
 					.resize(width, height, {
 						fit: crop
