@@ -4,8 +4,9 @@ import express from 'express'
 import tus from '@evius/tus-server'
 import path from 'path'
 import uuidv1 from 'uuid/v1'
-import mime from 'mime'
 import sharp from 'sharp'
+
+import imgExtensions from './imgExtensions'
 
 const mySchema = 'medias'
 
@@ -157,7 +158,7 @@ export default (ctx) => {
 			const height = parseInt(req.query.h) || parseInt(req.query.height) || null
 			const crop = req.query.crop || req.query.c
 
-			if(req.params.mimeType === 'image' && (width || height || crop)) {
+			if((req.params.mimeType === 'image' || imgExtensions.includes(req.params['0'].toLowerCase())) && (width || height || crop)) {
 				sharp(filePath)
 					.resize(width, height, {
 						fit: crop
