@@ -1,6 +1,15 @@
 import express from 'express'
 import cors from 'cors'
 
+const isIP = (ip) => {
+	if (typeof(ip) !== 'string')
+		return false;
+	if (!ip.match(/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/)) {
+		return false;
+	}
+	return ip.split('.').filter(octect => octect >= 0 && octect <= 255).length === 4;
+}
+
 const corsOptionsDelegate = (ctx) => {
 	return async (req, cb) => {
 		const project = await ctx.utils.db.findOneByQuery(ctx, {
@@ -13,7 +22,7 @@ const corsOptionsDelegate = (ctx) => {
 
 		const whiteListEvius = new RegExp(/evius\.id$/igm)
 
-		const source = req.headers.origin || req.headers.host
+		const source = req.headers.origin || `http://${req.ip}`
 		console.log(`${source} requesting access`)
 		
 		req.project = project
