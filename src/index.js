@@ -30,6 +30,7 @@ class Engine {
 	}
 
 	async start () {
+		this.app.enable('trust proxy')
 		this.app.use(morgan('tiny'))
 		this.app.use(bodyParser.json())
 		this.app.use(bodyParser.urlencoded({ extended: false }))
@@ -93,7 +94,7 @@ class Engine {
 			})
 		})
 
-		return this.app.listen(this.PORT, () => console.log(`Engine start on port ${this.PORT}`))
+		return this.app.listen(this.PORT, '0.0.0.0', () => console.log(`Engine start on port ${this.PORT}`))
 	}
 }
 
