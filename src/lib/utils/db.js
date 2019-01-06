@@ -32,8 +32,9 @@ module.exports = {
 	 * @param {object} rawSchema 
 	 */
 	async buildModel(ctx, projectId, rawSchema) {
-		const options = { autoIndex: false, ...rawSchema.options }
+		const options = { ...rawSchema.options }
 		let schema = new mongoose.Schema(rawSchema.attributes, options)
+		schema.set('autoIndex', false)
 		schema.plugin(uniqueValidator)
 		schema.plugin(autopopulate)
 		if(projectId === ctx.CORE_DB){
@@ -41,6 +42,7 @@ module.exports = {
 		}
 
 		const model = ctx.dbsConnection[projectId].model(rawSchema.name, schema)
+		// await model.syncIndexes()
 		try {
 			await model.syncIndexes()
 		} catch (err) {
@@ -105,6 +107,7 @@ module.exports = {
 					.exec((err, doc) => {
 						if(!doc) {
 							console.log('read from db')
+							filters.query['$and'].forEach((a) => (console.log(a)))
 							ctx.dbs[params.projectId].models[params.schemaId].findOne(filters.query)
 								.then((result)=>{
 									if(result){
@@ -115,7 +118,7 @@ module.exports = {
 										return resolve(result)
 									}
 									else{
-										return reject('Bad Request - object not found')
+										return resolve(null)
 									}
 								})
 								.catch((err)=>{
@@ -155,7 +158,7 @@ module.exports = {
 										return resolve(result)
 									}
 									else{
-										return reject('object_not_found')
+										return resolve(null)
 									}
 								})
 								.catch((err)=>{

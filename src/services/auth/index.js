@@ -61,6 +61,76 @@ module.exports = {
 			}
 		})
 
+		myRouter.post('/invite', ctx.utils.validate({
+			email: ['isRequired', 'isEmail']
+		}), async (req, res) => {
+			try {
+				const response = await controllers.forgotPassword(ctx, req)
+				res.status(200).json({
+					status: 'success',
+					data: response
+				})
+			} catch (err) {
+				res.status(400).json({
+					status: 'error',
+					message: err
+				})
+			}
+		})
+
+		myRouter.post('/forgot-password', ctx.utils.validate({
+			email: ['isRequired', 'isEmail']
+		}), async (req, res) => {
+			try {
+				const response = await controllers.forgotPassword(ctx, req)
+				res.status(200).json({
+					status: 'success',
+					data: response
+				})
+			} catch (err) {
+				res.status(400).json({
+					status: 'error',
+					message: err
+				})
+			}
+		})
+
+		myRouter.get('/verify-credential', ctx.utils.validate({
+			token: ['isRequired', 'isAny']
+		}), async (req, res) => {
+			try {
+				const response = await controllers.verifyCredential(ctx, req)
+				res.status(200).json({
+					status: 'success',
+					data: response
+				})
+			} catch (err) {
+				res.status(400).json({
+					status: 'error',
+					message: err
+				})
+			}
+		})
+
+		myRouter.post('/change-password', ctx.utils.validate({
+			token: ['isRequired', 'isAny'],
+			email: ['isRequired', 'isEmail'],
+			password: ['isRequired', 'isAny']
+		}), async (req, res) => {
+			try {
+				const response = await controllers.changePassword(ctx, req)
+				res.status(200).json({
+					status: 'success',
+					data: response
+				})
+			} catch (err) {
+				res.status(400).json({
+					status: 'error',
+					message: err
+				})
+			}
+		})
+
 		myRouter.get('/current', async (req, res) => {
 			try {
 				const response = await controllers.current(ctx, req)

@@ -30,7 +30,7 @@
       "field": "single-line-text",
       "type": "string",
       "required": true,
-      "default": "authenticated"
+      "default": "user"
     }
   },
   "options": {

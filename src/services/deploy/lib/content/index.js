@@ -71,7 +71,7 @@ export default (ctx) => {
 						schemaId: 'projects',
 						query: {
 							_id: req.subdomains[0],
-							owner: user._id
+							userIds: user._id
 						}
 					})
 					next()

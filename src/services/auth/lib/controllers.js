@@ -1,6 +1,10 @@
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 
+import UIDGenerator from 'uid-generator'
+
+const uidgen = new UIDGenerator(null, 23)
+
 const checkAccess = (ctx, user, targetEndpoint, targetMethod)=> {
 	const access = targetMethod === 'GET' ? 'read' : 'write'
 	return new Promise((resolve, reject)=>{
@@ -41,7 +45,6 @@ module.exports = {
 			bcrypt.hash(req.body.password, 10)
 				.then(async (hash)=>{
 					req.body.password = hash
-					console.log(req.body)
 					try {
 						const response = await ctx.utils.db.insert(ctx, {
 							projectId: ctx.CORE_DB,
@@ -54,6 +57,124 @@ module.exports = {
 						return reject(err)
 					}
 				})
+		})
+	},
+
+	/**
+	 * 
+	 * @param {*} ctx 
+	 * @param {*} req 
+	 */
+	forgotPassword(ctx, req) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				const user = await ctx.utils.db.findOneByQuery(ctx, {
+					projectId: ctx.CORE_DB,
+					schemaId: 'users',
+					query: {
+						email: req.body.email
+					}
+				})
+
+				if(user) {
+					const newToken = await uidgen.generate()
+
+					await ctx.utils.db.insert(ctx, {
+						projectId: ctx.CORE_DB,
+						schemaId: 'CORE_CREDENTIALS',
+						body: {
+							token: newToken,
+							userId: user.id,
+							isValid: true,
+							state: 'FORGOT_PASSWORD'
+						}
+					})
+
+					await ctx.utils.mail.send({
+						from: `Evius Industri ${process.env.EMAIL_USERNAME}`,
+						to: req.body.email,
+						subject: 'Forgot Password',
+						html: `Forgot password ya? ${newToken}`
+					})
+
+					resolve('success')
+				}
+				else {
+					reject('email is not registered')
+				}
+			} catch (err) {
+				console.log(err)
+				reject(err)
+			}
+		})
+	},
+
+	/**
+	 * 
+	 * @param {*} ctx 
+	 * @param {*} req 
+	 */
+	verifyCredential(ctx, req) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				const cred = await ctx.utils.db.findOneByQuery(ctx, {
+					projectId: ctx.CORE_DB,
+					schemaId: 'CORE_CREDENTIALS',
+					query: {
+						token: req.body.token
+					}
+				})
+				if(!cred) {
+					return reject('token_not_found')
+				}
+
+				if(cred.isValid) {
+					return resolve(cred)
+				}
+				else {
+					reject('token_expired')
+				}
+			} catch (err) {
+				reject(err)
+			}
+		})
+	},
+
+	/**
+	 * 
+	 * @param {*} ctx 
+	 * @param {*} req 
+	 */
+	changePassword(ctx, req) {
+		const self = this
+		return new Promise(async (resolve, reject) => {
+			try {
+				const cred = await self.verifyCredential(ctx, req)
+				const newPassword = bcrypt.hashSync(req.body.password, 10)
+
+				await ctx.utils.db.modify(ctx, {
+					projectId: ctx.CORE_DB,
+					schemaId: 'users',
+					objectKey: cred.userId,
+					body: {
+						password: newPassword,
+						validEmail: true
+					}
+				})
+
+				await ctx.utils.db.modify(ctx, {
+					projectId: ctx.CORE_DB,
+					schemaId: 'CORE_CREDENTIALS',
+					objectKey: cred.id,
+					body: {
+						isValid: false
+					}
+				})
+
+				resolve('success')
+			} catch (err) {
+				reject(err)
+			}
 		})
 	},
 

@@ -53,9 +53,10 @@ module.exports = {
 					projectId: ctx.CORE_DB,
 					schemaId: 'projects',
 					query: {
-						owner: req.current._id
+						userIds: req.current._id
 					}
 				})
+				
 				res.status(200).json({
 					status: 'success',
 					data: response
@@ -90,6 +91,36 @@ module.exports = {
 					schemaId: 'projects',
 					objectKey: req.params.projectId
 				})
+				res.status(200).json({
+					status: 'success',
+					data: response
+				})
+			} catch (err) {
+				res.status(400).json({
+					status: 'error',
+					message: err
+				})
+			}
+		})
+		myRouter.post('/projects/:projectId/invite', async (req, res) => {
+			try {
+				const response = await projects.invite(ctx, req)
+				res.status(200).json({
+					status: 'success',
+					data: response
+				})
+			} catch (err) {
+				res.status(400).json({
+					status: 'error',
+					message: err
+				})
+			}
+		})
+		myRouter.post('/projects/:projectId/invite/confirm',ctx.utils.validate({
+			token: ['isRequired', 'isAny']
+		}), async (req, res) => {
+			try {
+				const response = await projects.inviteConfirmation(ctx, req)
 				res.status(200).json({
 					status: 'success',
 					data: response

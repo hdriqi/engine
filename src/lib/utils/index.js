@@ -4,6 +4,7 @@ import role from './role'
 import auth from './auth'
 import validate from './validate'
 import analytics from './analytics'
+import mail from './mail'
 
 module.exports = {
 	schema: schema,
@@ -11,5 +12,6 @@ module.exports = {
 	role: role,
 	auth: auth,
 	validate: validate,
-	analytics: analytics
+	analytics: analytics,
+	mail: mail
 }

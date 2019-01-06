@@ -15,6 +15,11 @@
 			"required": true,
 			"autopopulate": true
 		},
+		"userIds" : {
+			"field": "multi-line-text",
+			"type": ["objectId"],
+			"ref": "users"
+		},
 		"readApiKey": {
       "field": "single-line-text",
       "type": "string",
