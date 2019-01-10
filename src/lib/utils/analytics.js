@@ -54,8 +54,8 @@ module.exports = {
 				query: params.query || {}
 			})
 			let byday={}
-			function groupday(value, index, array) {
-				d = new Date(value['createdAt'])
+			function groupday(value) {
+				let d = new Date(value['createdAt'])
 				d = Math.floor(d.getTime()/(1000*60*60*24))
 				byday[d]=byday[d]||[]
 				byday[d].push(value)
