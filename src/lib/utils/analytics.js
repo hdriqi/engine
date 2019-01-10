@@ -53,7 +53,7 @@ module.exports = {
 				schemaId: 'CORE_ANALYTICS',
 				query: params.query || {}
 			})
-			byday={}
+			let byday={}
 			function groupday(value, index, array) {
 				d = new Date(value['createdAt'])
 				d = Math.floor(d.getTime()/(1000*60*60*24))
