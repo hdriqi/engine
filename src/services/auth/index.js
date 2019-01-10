@@ -112,13 +112,13 @@ module.exports = {
 			}
 		})
 
-		myRouter.post('/change-password', ctx.utils.validate({
+		myRouter.post('/reset-password', ctx.utils.validate({
 			token: ['isRequired', 'isAny'],
 			email: ['isRequired', 'isEmail'],
 			password: ['isRequired', 'isAny']
 		}), async (req, res) => {
 			try {
-				const response = await controllers.changePassword(ctx, req)
+				const response = await controllers.resetPassword(ctx, req)
 				res.status(200).json({
 					status: 'success',
 					data: response

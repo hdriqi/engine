@@ -86,23 +86,31 @@ module.exports = {
 					}
 				})
 
+				const user = await ctx.utils.db.findOneByQuery(ctx, {
+					projectId: ctx.CORE_DB,
+					schemaId: 'users',
+					query: {
+						email: cred.params.email
+					}
+				})
+
 				const project = await ctx.utils.db.findOne(ctx, {
 					projectId: ctx.CORE_DB,
 					schemaId: 'projects',
-					objectKey: req.params.projectId
+					objectKey: cred.params.projectId
 				})
 
 				if(project.userIds) {
-					project.userIds.push(cred.userId)
+					project.userIds.push(user.id)
 				}
 				else {
-					project.userIds = [cred.userId]
+					project.userIds = [user.id]
 				}
 
 				await ctx.utils.db.modify(ctx, {
 					projectId: ctx.CORE_DB,
 					schemaId: 'projects',
-					objectKey: req.params.projectId,
+					objectKey: cred.params.projectId,
 					body: project
 				})
 
@@ -122,10 +130,12 @@ module.exports = {
 				// else sent invitation
 
 				// email invitation
+				// if email already registered
 				// in url /invite/token
 				// accept -> change in project collaborators and redirect to login
 
-				// in url /invite/token-invitation/new/token-password
+				// if email not registered
+				// sent url /register?invite_token=1234567890
 				// redirect to /change-password
 				// save password -> change in project collaborators and redirect to login
 
@@ -143,41 +153,16 @@ module.exports = {
 					}
 				})
 
-				if(project.userIds && project.userIds.includes(user.id)) {
+				if(project.userIds && user && project.userIds.includes(user.id)) {
 					return reject('already invited')
 				}
 
 				const newToken = await uidgen.generate()
-				let generatedLink = newToken.toString()
+				let link = `/invite/${newToken}`
 
 				// if user not exist
 				if(!user) {
-					const resetPasswordToken = await uidgen.generate()
-
-					user = await ctx.utils.db.insert(ctx, {
-						projectId: ctx.CORE_DB,
-						schemaId: 'users',
-						body: {
-							username: req.body.email.split('@')[0],
-							email: req.body.email,
-							password: resetPasswordToken,
-							validEmail: false,
-							role: 'user'
-						}
-					})
-
-					await ctx.utils.db.insert(ctx, {
-						projectId: ctx.CORE_DB,
-						schemaId: 'CORE_CREDENTIALS',
-						body: {
-							token: resetPasswordToken,
-							userId: user._id,
-							isValid: true,
-							state: 'FORGOT_PASSWORD'
-						}
-					})
-
-					generatedLink += `?type=new&token=${resetPasswordToken}`
+					link = `/register?invite_token=${newToken}`
 				}
 
 				await ctx.utils.db.insert(ctx, {
@@ -185,18 +170,22 @@ module.exports = {
 					schemaId: 'CORE_CREDENTIALS',
 					body: {
 						token: newToken,
-						userId: user._id,
+						params: {
+							email: req.body.email,
+							projectId: req.params.projectId
+						},
 						isValid: true,
 						state: 'INVITE'
 					}
 				})
 
-				await ctx.utils.mail.send({
+				ctx.utils.mail.send({
 					from: `Evius Industri ${process.env.EMAIL_USERNAME}`,
 					to: req.body.email,
 					subject: `${project.name} Invitation`,
-					html: `You are invited to be the collaborators in ${project.name}, click here ${generatedLink}`
+					html: `You are invited to be the collaborators in ${project.name}, click here ${link}`
 				})
+
 				resolve('success')
 			} catch (err) {
 				console.log(err)

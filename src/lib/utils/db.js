@@ -218,12 +218,41 @@ module.exports = {
 	 * @param {projectId, schemaId, objectKey, body} params 
 	 */
 	modify(ctx, params) {
-		console.log(params)
-		// console.log('modify -> ', Object.values(params).join(' | '))
 		return new Promise(async (resolve, reject)=>{
 			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId] && params.objectKey && params.body){
 				const key = ctx.dbs[params.projectId].schemas[params.schemaId].key
 				ctx.dbs[params.projectId].models[params.schemaId].findOneAndUpdate({[key]: params.objectKey}, { $set: params.body }, { new: true, rawResult: true })
+					.then((result)=>{
+						if(result){
+							ctx.dbs[params.projectId].cache[params.schemaId].query = new nedb()
+							ctx.dbs[params.projectId].cache[params.schemaId].single.remove({[key]: params.objectKey})
+							return resolve(result.value)
+						}
+						else{
+							return reject('object_not_found')
+						}
+					})
+					.catch((err)=>{
+						return reject(err.message)
+					})
+			}
+			else{
+				return reject('bad_request')
+			}
+		})
+	},
+
+		/**
+	 * 
+	 * @param {ctx} ctx 
+	 * @param {projectId, schemaId, query, body} params 
+	 */
+	modifyByQuery(ctx, params) {
+		return new Promise(async (resolve, reject)=>{
+			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId] && params.objectKey && params.body){
+				const filters = ctx.filters(params.query)
+				console.log(filters)
+				ctx.dbs[params.projectId].models[params.schemaId].findOneAndUpdate(filters.query, { $set: params.body }, { new: true, rawResult: true })
 					.then((result)=>{
 						if(result){
 							ctx.dbs[params.projectId].cache[params.schemaId].query = new nedb()

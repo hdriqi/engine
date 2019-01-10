@@ -45,6 +45,33 @@ module.exports = {
 			}
 		})
 
+		myRouter.use('/projects/:projectId', async (req, res, next) => {
+			if(req.method !== 'OPTIONS'){
+				try {
+					const response = await ctx.utils.db.findOne(ctx, {
+						projectId: ctx.CORE_DB,
+						schemaId: 'projects',
+						objectKey: req.params.projectId
+					})
+					if(!response.userIds.includes(req.current._id)){
+						return res.status(403).json({
+							status: 'error',
+							message: 'unauthorized'
+						})
+					}
+					next()
+				} catch (err) {
+					res.status(400).json({
+						status: 'error',
+						message: err
+					})
+				}
+			}
+			else{
+				next()
+			}
+		})
+
 		myRouter.use(schemas(ctx))
 
 		myRouter.get('/projects', async (req, res) => {

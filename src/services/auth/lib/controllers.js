@@ -38,25 +38,77 @@ module.exports = {
 	 * @param {*} req 
 	 */
 	register(ctx, req) {
+		const self = this
 		return new Promise(async (resolve, reject)=>{
-			if(!req.body.password) {
-				return reject('password is required')
+			try {
+				req.body.validEmail = false
+				
+				if(!req.body.password) {
+					return reject('password is required')
+				}
+	
+				let cred
+				if(req.body.token) {
+					cred = await self.verifyCredential(ctx, req)
+				}
+	
+				bcrypt.hash(req.body.password, 10)
+					.then(async (hash)=>{
+						req.body.password = hash
+						try {
+							if(cred) {
+								await ctx.utils.db.modify(ctx, {
+									projectId: ctx.CORE_DB,
+									schemaId: 'CORE_CREDENTIALS',
+									objectKey: cred.id,
+									body: {
+										isValid: false
+									}
+								})
+				
+								const user = await ctx.utils.db.findOneByQuery(ctx, {
+									projectId: ctx.CORE_DB,
+									schemaId: 'users',
+									query: {
+										email: cred.params.email
+									}
+								})
+				
+								const project = await ctx.utils.db.findOne(ctx, {
+									projectId: ctx.CORE_DB,
+									schemaId: 'projects',
+									objectKey: cred.params.projectId
+								})
+				
+								if(project.userIds) {
+									project.userIds.push(user.id)
+								}
+								else {
+									project.userIds = [user.id]
+								}
+				
+								await ctx.utils.db.modify(ctx, {
+									projectId: ctx.CORE_DB,
+									schemaId: 'projects',
+									objectKey: cred.params.projectId,
+									body: project
+								})
+								req.body.validEmail = true
+							}
+							const response = await ctx.utils.db.insert(ctx, {
+								projectId: ctx.CORE_DB,
+								schemaId: 'users',
+								body: req.body
+							})
+							return resolve(response)
+						} catch (err) {
+							console.log(err)
+							return reject(err)
+						}
+					})
+			} catch (err) {
+				reject(err)
 			}
-			bcrypt.hash(req.body.password, 10)
-				.then(async (hash)=>{
-					req.body.password = hash
-					try {
-						const response = await ctx.utils.db.insert(ctx, {
-							projectId: ctx.CORE_DB,
-							schemaId: 'users',
-							body: req.body
-						})
-						return resolve(response)
-					} catch (err) {
-						console.log(err)
-						return reject(err)
-					}
-				})
 		})
 	},
 
@@ -84,13 +136,15 @@ module.exports = {
 						schemaId: 'CORE_CREDENTIALS',
 						body: {
 							token: newToken,
-							userId: user.id,
+							params: {
+								email:  user.email
+							},
 							isValid: true,
 							state: 'FORGOT_PASSWORD'
 						}
 					})
 
-					await ctx.utils.mail.send({
+					ctx.utils.mail.send({
 						from: `Evius Industri ${process.env.EMAIL_USERNAME}`,
 						to: req.body.email,
 						subject: 'Forgot Password',
@@ -145,17 +199,19 @@ module.exports = {
 	 * @param {*} ctx 
 	 * @param {*} req 
 	 */
-	changePassword(ctx, req) {
+	resetPassword(ctx, req) {
 		const self = this
 		return new Promise(async (resolve, reject) => {
 			try {
 				const cred = await self.verifyCredential(ctx, req)
 				const newPassword = bcrypt.hashSync(req.body.password, 10)
 
-				await ctx.utils.db.modify(ctx, {
+				await ctx.utils.db.modifyByQuery(ctx, {
 					projectId: ctx.CORE_DB,
 					schemaId: 'users',
-					objectKey: cred.userId,
+					query: {
+						email: cred.params.email
+					},
 					body: {
 						password: newPassword,
 						validEmail: true
