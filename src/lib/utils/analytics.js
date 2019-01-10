@@ -53,14 +53,13 @@ module.exports = {
 				schemaId: 'CORE_ANALYTICS',
 				query: params.query || {}
 			})
-			let byday={}
-			function groupday(value) {
-				let d = new Date(value['createdAt'])
+			let byday = {}
+			for (const item of response) {
+				let d = new Date(item['createdAt'])
 				d = Math.floor(d.getTime()/(1000*60*60*24))
-				byday[d]=byday[d]||[]
-				byday[d].push(value)
+				byday[d] = byday[d]||0
+				byday[d] += 1
 			}
-			response.forEach(groupday)
 			console.log(byday)
 			return response
 		} catch (err) {
