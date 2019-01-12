@@ -55,12 +55,19 @@ module.exports = {
 			})
 			let byday = {}
 			for (const item of response) {
-				let d = new Date(item['createdAt'])
+				let d = new Date(item.createdAt)
 				d = Math.floor(d.getTime()/(1000*60*60*24))
 				byday[d] = byday[d]||0
 				byday[d] += 1
 			}
-			console.log(byday)
+
+			const final = byday.keys().map((key) => ({
+				timestamp: key * 1000 * 60 * 60 * 24,
+				count: byday[key]
+			}))
+
+			console.log(final)
+
 			return response
 		} catch (err) {
 			console.log(err)
@@ -75,6 +82,22 @@ module.exports = {
 				schemaId: 'CORE_BANDWIDTHS',
 				query: params.query || {}
 			})
+
+			let byday = {}
+			for (const item of response) {
+				let d = new Date(item.createdAt)
+				d = Math.floor(d.getTime()/(1000*60*60*24))
+				byday[d] = byday[d]||0
+				byday[d] += item.bytes
+			}
+
+			const final = byday.keys().map((key) => ({
+				timestamp: key * 1000 * 60 * 60 * 24,
+				count: byday[key]
+			}))
+
+			console.log(final)
+
 			return response
 		} catch (err) {
 			console.log(err)
