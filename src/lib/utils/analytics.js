@@ -61,7 +61,7 @@ module.exports = {
 				byday[d] += 1
 			}
 
-			const final = byday.keys().map((key) => ({
+			const final = Object.keys(byday).map((key) => ({
 				timestamp: key * 1000 * 60 * 60 * 24,
 				count: byday[key]
 			}))
@@ -91,7 +91,7 @@ module.exports = {
 				byday[d] += item.bytes
 			}
 
-			const final = byday.keys().map((key) => ({
+			const final = Object.keys(byday).map((key) => ({
 				timestamp: key * 1000 * 60 * 60 * 24,
 				count: byday[key]
 			}))
