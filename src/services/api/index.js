@@ -5,6 +5,8 @@ import UIDGenerator from 'uid-generator'
 
 const uidgen = new UIDGenerator(null, 23)
 
+const CLIENT_IP = 'http://128.199.64.13'
+
 module.exports = {
 	router(ctx) {
 		const myRouter = express.Router()
@@ -12,7 +14,7 @@ module.exports = {
 		myRouter.use((req, res, next) => {
 			if(process.env.PRODUCTION == 'true') {
 				const pattern = new RegExp(/evius.id$/igm)
-				if(pattern.test(req.headers.origin)) {
+				if(pattern.test(req.headers.origin) || req.ip === CLIENT_IP) {
 					next()
 				}
 				else{
