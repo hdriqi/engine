@@ -15,7 +15,7 @@ module.exports = {
 					owner: req.current._id,
 					readApiKey: readApiKey,
 					writeApiKey: writeApiKey,
-					collaborators: [req.current._id],
+					userIds: [req.current._id],
 					cors: []
 				},
 				query: req.query

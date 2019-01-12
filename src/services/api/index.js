@@ -20,7 +20,7 @@ module.exports = {
 				else{
 					res.status(401).json({
 						status: 'unauthorized',
-						message: 'origin not allowed to access'
+						message: `${req.headers.origin || req.ip} not allowed to access`
 					})
 				}
 			}
@@ -55,7 +55,9 @@ module.exports = {
 						schemaId: 'projects',
 						objectKey: req.params.projectId
 					})
-					if(!response.userIds.includes(req.current._id)){
+					const members = response.userIds.join(',').split(',')
+					if(!members.includes(req.current._id)){
+						console.log('unauthorized', response)
 						return res.status(403).json({
 							status: 'error',
 							message: 'unauthorized'
