@@ -68,7 +68,7 @@ module.exports = {
 
 			console.log(final)
 
-			return response
+			return final
 		} catch (err) {
 			console.log(err)
 			return err
@@ -98,7 +98,7 @@ module.exports = {
 
 			console.log(final)
 
-			return response
+			return final
 		} catch (err) {
 			console.log(err)
 			return err
