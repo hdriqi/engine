@@ -17,13 +17,11 @@ const corsOptionsDelegate = (ctx) => {
 		console.log(`${source} requesting access`)
 		
 		req.project = project
-		if(req.project && req.project.cors.length > 0 && req.project.cors.includes(source)) {
-			cb(null, true)
-		}
-		else if(whiteListEvius.test(source)) {
-			cb(null, true)
-		}
-		else if(req.project && req.project.cors.length === 0) {
+		if(source === ctx.SERPH_IP || 
+			(req.project && req.project.cors.length > 0 && req.project.cors.includes(source)) ||
+			whiteListEvius.test(source) ||
+			(req.project && req.project.cors.length === 0)
+			) {
 			cb(null, true)
 		}
 		else{
