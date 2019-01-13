@@ -61,11 +61,11 @@ module.exports = {
 			}
 		})
 
-		myRouter.post('/invite', ctx.utils.validate({
-			email: ['isRequired', 'isEmail']
+		myRouter.post('/invite-confirm',ctx.utils.validate({
+			token: ['isRequired', 'isAny']
 		}), async (req, res) => {
 			try {
-				const response = await controllers.forgotPassword(ctx, req)
+				const response = await controllers.inviteConfirmation(ctx, req)
 				res.status(200).json({
 					status: 'success',
 					data: response

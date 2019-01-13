@@ -198,6 +198,71 @@ module.exports = {
 		})
 	},
 
+	async inviteConfirmation(ctx, req) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				const cred = await ctx.utils.db.findOneByQuery(ctx, {
+					projectId: ctx.CORE_DB,
+					schemaId: 'CORE_CREDENTIALS',
+					query: {
+						token: req.body.token,
+						isValid: true
+					}
+				})
+
+				if(!cred) {
+					return reject('token_not_found')
+				}
+
+				if(!cred.isValid) {
+					return reject('token_expired')
+				}
+
+				await ctx.utils.db.modify(ctx, {
+					projectId: ctx.CORE_DB,
+					schemaId: 'CORE_CREDENTIALS',
+					objectKey: cred.id,
+					body: {
+						isValid: false
+					}
+				})
+
+				const user = await ctx.utils.db.findOneByQuery(ctx, {
+					projectId: ctx.CORE_DB,
+					schemaId: 'users',
+					query: {
+						email: cred.params.email
+					}
+				})
+
+				const project = await ctx.utils.db.findOne(ctx, {
+					projectId: ctx.CORE_DB,
+					schemaId: 'projects',
+					objectKey: cred.params.projectId
+				})
+
+				if(project.userIds) {
+					project.userIds.push(user.id)
+				}
+				else {
+					project.userIds = [user.id]
+				}
+
+				await ctx.utils.db.modify(ctx, {
+					projectId: ctx.CORE_DB,
+					schemaId: 'projects',
+					objectKey: cred.params.projectId,
+					body: project
+				})
+
+				resolve('success')
+			} catch (err) {
+				console.log(err)
+				reject(err)
+			}
+		})
+	},
+
 	/**
 	 * 
 	 * @param {*} ctx 
