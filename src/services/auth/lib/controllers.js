@@ -119,7 +119,7 @@ module.exports = {
 							await ctx.utils.db.modify(ctx, {
 								projectId: ctx.CORE_DB,
 								schemaId: 'users',
-								objectKey: user.id,
+								objectKey: user._id,
 								body: {
 									password: newPassword
 								}
@@ -213,7 +213,7 @@ module.exports = {
 				await ctx.utils.db.modify(ctx, {
 					projectId: ctx.CORE_DB,
 					schemaId: 'CORE_CREDENTIALS',
-					objectKey: cred.id,
+					objectKey: cred._id,
 					body: {
 						isValid: false
 					}
@@ -316,7 +316,7 @@ module.exports = {
 				await ctx.utils.db.modify(ctx, {
 					projectId: ctx.CORE_DB,
 					schemaId: 'CORE_CREDENTIALS',
-					objectKey: cred.id,
+					objectKey: cred._id,
 					body: {
 						isValid: false
 					}
