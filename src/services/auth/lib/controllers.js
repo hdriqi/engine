@@ -41,13 +41,11 @@ module.exports = {
 		const self = this
 		return new Promise(async (resolve, reject)=>{
 			try {
-				req.body.validEmail = false
-				
 				if(!req.body.password) {
 					return reject('password is required')
 				}
 	
-				let cred
+				let cred = null
 				if(req.body.token) {
 					cred = await self.verifyCredential(ctx, req)
 				}
@@ -55,22 +53,21 @@ module.exports = {
 				bcrypt.hash(req.body.password, 10)
 					.then(async (hash)=>{
 						req.body.password = hash
+						req.body.validEmail = cred ? true : false
 						try {
+							const user = await ctx.utils.db.insert(ctx, {
+								projectId: ctx.CORE_DB,
+								schemaId: 'users',
+								body: req.body
+							})
+
 							if(cred) {
 								await ctx.utils.db.modify(ctx, {
 									projectId: ctx.CORE_DB,
 									schemaId: 'CORE_CREDENTIALS',
-									objectKey: cred.id,
+									objectKey: cred._id,
 									body: {
 										isValid: false
-									}
-								})
-				
-								const user = await ctx.utils.db.findOneByQuery(ctx, {
-									projectId: ctx.CORE_DB,
-									schemaId: 'users',
-									query: {
-										email: cred.params.email
 									}
 								})
 				
@@ -81,10 +78,10 @@ module.exports = {
 								})
 				
 								if(project.userIds) {
-									project.userIds.push(user.id)
+									project.userIds.push(user._id)
 								}
 								else {
-									project.userIds = [user.id]
+									project.userIds = [user._id]
 								}
 				
 								await ctx.utils.db.modify(ctx, {
@@ -93,14 +90,9 @@ module.exports = {
 									objectKey: cred.params.projectId,
 									body: project
 								})
-								req.body.validEmail = true
 							}
-							const response = await ctx.utils.db.insert(ctx, {
-								projectId: ctx.CORE_DB,
-								schemaId: 'users',
-								body: req.body
-							})
-							return resolve(response)
+
+							return resolve(user)
 						} catch (err) {
 							console.log(err)
 							return reject(err)
