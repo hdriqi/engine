@@ -107,7 +107,6 @@ module.exports = {
 					.exec((err, doc) => {
 						if(!doc) {
 							console.log('read from db')
-							filters.query['$and'].forEach((a) => (console.log(a)))
 							ctx.dbs[params.projectId].models[params.schemaId].findOne(filters.query)
 								.then((result)=>{
 									if(result){

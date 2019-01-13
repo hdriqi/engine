@@ -112,6 +112,42 @@ module.exports = {
 		})
 	},
 
+	changePassword(ctx, req) {
+		return new Promise(async (resolve, reject)=>{
+			try {
+				const decoded = await ctx.utils.auth.verify(ctx, req)
+				const user = await ctx.dbs[ctx.CORE_DB].models['users'].findOne({
+					_id: decoded._id
+				})
+
+				bcrypt.compare(req.body.currentPassword, user.password)
+					.then(async (res)=>{
+						if(res){
+							const newPassword = await bcrypt.hash(req.body.newPassword, 10)
+							console.log(newPassword)
+							await ctx.utils.db.modify(ctx, {
+								projectId: ctx.CORE_DB,
+								schemaId: 'users',
+								objectKey: user.id,
+								body: {
+									password: newPassword
+								}
+							})
+							return resolve('success')
+						}
+						return reject('password_not_match')
+					})
+					.catch((err) => {
+						console.log(err)
+						return reject(err)
+					})
+			}
+			catch(err) {
+				reject(err)
+			}
+		})
+	},
+
 	/**
 	 * 
 	 * @param {*} ctx 
@@ -170,14 +206,17 @@ module.exports = {
 	 */
 	verifyCredential(ctx, req) {
 		return new Promise(async (resolve, reject) => {
+			const token = req.params.token || req.body.token
+
 			try {
 				const cred = await ctx.utils.db.findOneByQuery(ctx, {
 					projectId: ctx.CORE_DB,
 					schemaId: 'CORE_CREDENTIALS',
 					query: {
-						token: req.params.token
+						token: token
 					}
 				})
+
 				if(!cred) {
 					return reject('token_not_found')
 				}

@@ -96,8 +96,8 @@ module.exports = {
 		})
 
 		myRouter.post('/change-password', ctx.utils.validate({
-			currentPassword: ['isRequired'],
-			newPassword: ['isRequired']
+			currentPassword: ['isRequired', 'isAny'],
+			newPassword: ['isRequired', 'isAny']
 		}), async (req, res) => {
 			try {
 				const response = await controllers.changePassword(ctx, req)
