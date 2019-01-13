@@ -95,6 +95,24 @@ module.exports = {
 			}
 		})
 
+		myRouter.post('/change-password', ctx.utils.validate({
+			currentPassword: ['isRequired'],
+			newPassword: ['isRequired']
+		}), async (req, res) => {
+			try {
+				const response = await controllers.changePassword(ctx, req)
+				res.status(200).json({
+					status: 'success',
+					data: response
+				})
+			} catch (err) {
+				res.status(400).json({
+					status: 'error',
+					message: err
+				})
+			}
+		})
+
 		myRouter.get('/verify-credential/:token', async (req, res) => {
 			try {
 				const response = await controllers.verifyCredential(ctx, req)
@@ -112,7 +130,6 @@ module.exports = {
 
 		myRouter.post('/reset-password', ctx.utils.validate({
 			token: ['isRequired', 'isAny'],
-			email: ['isRequired', 'isEmail'],
 			password: ['isRequired', 'isAny']
 		}), async (req, res) => {
 			try {
