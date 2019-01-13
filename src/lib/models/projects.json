@@ -18,8 +18,7 @@
 		"userIds" : {
 			"field": "multi-line-text",
 			"type": ["objectId"],
-			"ref": "users",
-			"autopopulate": true
+			"ref": "users"
 		},
 		"readApiKey": {
       "field": "single-line-text",

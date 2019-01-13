@@ -113,7 +113,11 @@ module.exports = {
 				const response = await ctx.utils.db.findOne(ctx, {
 					projectId: ctx.CORE_DB,
 					schemaId: 'projects',
-					objectKey: req.params.projectId
+					objectKey: req.params.projectId,
+					populate: {
+						path: 'userIds',
+						model: 'users'
+					}
 				})
 				res.status(200).json({
 					status: 'success',

@@ -150,7 +150,9 @@ module.exports = {
 					.exec((err, doc) => {
 						if(!doc) {
 							console.log('read from db')
+							console.log(params.populate)
 							ctx.dbs[params.projectId].models[params.schemaId].findOne({[key]: params.objectKey})
+								.populate(params.populate || '')
 								.then((result)=>{
 									if(result){
 										ctx.dbs[params.projectId].cache[params.schemaId].single.insert(JSON.parse(JSON.stringify(result)))
