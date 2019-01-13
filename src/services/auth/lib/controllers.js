@@ -234,10 +234,10 @@ module.exports = {
 				})
 
 				if(project.userIds) {
-					project.userIds.push(user.id)
+					project.userIds.push(user._id)
 				}
 				else {
-					project.userIds = [user.id]
+					project.userIds = [user._id]
 				}
 
 				await ctx.utils.db.modify(ctx, {
@@ -299,7 +299,6 @@ module.exports = {
 		return new Promise(async (resolve, reject) => {
 			try {
 				const cred = await self.verifyCredential(ctx, req)
-				console.log(cred)
 				const newPassword = bcrypt.hashSync(req.body.password, 10)
 
 				await ctx.utils.db.modifyByQuery(ctx, {
