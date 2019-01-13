@@ -175,7 +175,7 @@ module.exports = {
 					projectId: ctx.CORE_DB,
 					schemaId: 'CORE_CREDENTIALS',
 					query: {
-						token: req.body.token
+						token: req.params.token
 					}
 				})
 				if(!cred) {

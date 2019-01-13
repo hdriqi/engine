@@ -95,9 +95,7 @@ module.exports = {
 			}
 		})
 
-		myRouter.get('/verify-credential', ctx.utils.validate({
-			token: ['isRequired', 'isAny']
-		}), async (req, res) => {
+		myRouter.get('/verify-credential/:token', async (req, res) => {
 			try {
 				const response = await controllers.verifyCredential(ctx, req)
 				res.status(200).json({
