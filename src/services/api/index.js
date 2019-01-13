@@ -48,24 +48,19 @@ module.exports = {
 		myRouter.use('/projects/:projectId', async (req, res, next) => {
 			if(req.method !== 'OPTIONS'){
 				try {
-					const response = await ctx.utils.db.findOne(ctx, {
+					await ctx.utils.db.findOneByQuery(ctx, {
 						projectId: ctx.CORE_DB,
 						schemaId: 'projects',
-						objectKey: req.params.projectId
+						query: {
+							_id: req.params.projectId,
+							userIds: req.current._id
+						}
 					})
-					const members = response.userIds.join(',').split(',')
-					if(!members.includes(req.current._id)){
-						console.log('unauthorized', response)
-						return res.status(403).json({
-							status: 'error',
-							message: 'unauthorized'
-						})
-					}
 					next()
 				} catch (err) {
-					res.status(400).json({
+					return res.status(403).json({
 						status: 'error',
-						message: err
+						message: 'unauthorized'
 					})
 				}
 			}
