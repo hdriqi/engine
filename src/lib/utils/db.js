@@ -248,14 +248,14 @@ module.exports = {
 	 */
 	modifyByQuery(ctx, params) {
 		return new Promise(async (resolve, reject)=>{
-			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId] && params.objectKey && params.body){
+			if(ctx.dbs[params.projectId] && ctx.dbs[params.projectId].models[params.schemaId] && params.query && params.body){
+				const key = ctx.dbs[params.projectId].schemas[params.schemaId].key
 				const filters = ctx.filters(params.query)
-				console.log(filters)
 				ctx.dbs[params.projectId].models[params.schemaId].findOneAndUpdate(filters.query, { $set: params.body }, { new: true, rawResult: true })
 					.then((result)=>{
 						if(result){
 							ctx.dbs[params.projectId].cache[params.schemaId].query = new nedb()
-							ctx.dbs[params.projectId].cache[params.schemaId].single.remove({[key]: params.objectKey})
+							ctx.dbs[params.projectId].cache[params.schemaId].single.remove({[key]: result._id})
 							return resolve(result.value)
 						}
 						else{

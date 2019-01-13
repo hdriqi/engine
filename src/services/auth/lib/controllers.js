@@ -124,7 +124,6 @@ module.exports = {
 					.then(async (res)=>{
 						if(res){
 							const newPassword = await bcrypt.hash(req.body.newPassword, 10)
-							console.log(newPassword)
 							await ctx.utils.db.modify(ctx, {
 								projectId: ctx.CORE_DB,
 								schemaId: 'users',
@@ -243,6 +242,7 @@ module.exports = {
 		return new Promise(async (resolve, reject) => {
 			try {
 				const cred = await self.verifyCredential(ctx, req)
+				console.log(cred)
 				const newPassword = bcrypt.hashSync(req.body.password, 10)
 
 				await ctx.utils.db.modifyByQuery(ctx, {
