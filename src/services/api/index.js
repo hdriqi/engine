@@ -267,7 +267,7 @@ module.exports = {
 			name: ['isRequired', 'isAlphanumeric']
 		}), async (req, res) => {
 			try {
-				if(req.body.cors.length > 0) {
+				if(req.body.cors && req.body.cors.length > 0) {
 					const split = req.body.cors.split(',')
 					req.body.cors = split
 				}
