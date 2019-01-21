@@ -21,7 +21,7 @@ class Engine {
 		this.CORE_DB = 'engine-core'
 		this.app = express()
 		this.RESERVED_WORDS = ['schemas', 'medias']
-		this.SERPH_IP = 'http://128.199.64.13'
+		this.SERPH_IP = ['http://128.199.64.13', 'http://128.199.117.43']
 		this.USERS_PROJECTS = path.join(__dirname, '..', '..', 'users-projects')
 		this.ENGINE_PATH = __dirname
 		this.utils = utils

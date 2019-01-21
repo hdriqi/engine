@@ -17,7 +17,7 @@ const corsOptionsDelegate = (ctx) => {
 		console.log(`${source} requesting access`)
 		
 		req.project = project
-		if(source === ctx.SERPH_IP || 
+		if(ctx.SERPH_IP.includes(source) || 
 			(req.project && req.project.cors.length > 0 && req.project.cors.includes(source)) ||
 			whiteListEvius.test(source) ||
 			(req.project && req.project.cors.length === 0)

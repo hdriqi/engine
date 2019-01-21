@@ -12,7 +12,7 @@ module.exports = {
 		myRouter.use((req, res, next) => {
 			if(process.env.PRODUCTION == 'true') {
 				const pattern = new RegExp(/evius.id$/igm)
-				if(pattern.test(req.headers.origin) || req.ip === ctx.SERPH_IP) {
+				if(pattern.test(req.headers.origin) || ctx.SERPH_IP.includes(req.ip)) {
 					next()
 				}
 				else{
