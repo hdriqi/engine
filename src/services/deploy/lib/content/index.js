@@ -15,7 +15,7 @@ const corsOptionsDelegate = (ctx) => {
 
 		const source = req.headers.origin || `http://${req.ip}`
 		console.log(`${source} requesting access`)
-		
+		console.log(ctx.SERPH_IP.includes(source))
 		req.project = project
 		if(ctx.SERPH_IP.includes(source) || 
 			(req.project && req.project.cors.length > 0 && req.project.cors.includes(source)) ||
