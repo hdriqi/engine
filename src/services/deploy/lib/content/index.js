@@ -54,6 +54,7 @@ export default (ctx) => {
 			try {
 				const user = await ctx.utils.auth.verify(ctx, req)
 				req.users = user
+				console.log(user)
 				if(user.grant_type === 'jwt') {
 					await ctx.utils.db.findOneByQuery(ctx, {
 						projectId: ctx.CORE_DB,
