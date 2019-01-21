@@ -15,7 +15,6 @@ const corsOptionsDelegate = (ctx) => {
 
 		const source = req.headers.origin || `http://${req.ip}`
 		console.log(`${source} requesting access`)
-		console.log(ctx.SERPH_IP.includes(source))
 		req.project = project
 		if(ctx.SERPH_IP.includes(source) || 
 			(req.project && req.project.cors.length > 0 && req.project.cors.includes(source)) ||
@@ -54,7 +53,6 @@ export default (ctx) => {
 			try {
 				const user = await ctx.utils.auth.verify(ctx, req)
 				req.users = user
-				console.log(user)
 				if(user.grant_type === 'jwt') {
 					await ctx.utils.db.findOneByQuery(ctx, {
 						projectId: ctx.CORE_DB,

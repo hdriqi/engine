@@ -35,6 +35,7 @@ module.exports = {
 		return new Promise(async (resolve, reject) => {
 			if(req.headers.authorization) {
 				const token = req.headers.authorization.substring(7)
+				console.log(token)
 				// if apiKey
 				if(token.length === 23){
 					try {
