@@ -53,6 +53,7 @@ module.exports = {
 				bcrypt.hash(req.body.password, 10)
 					.then(async (hash)=>{
 						req.body.password = hash
+						console.log(cred)
 						req.body.validEmail = cred ? true : false
 						console.log(req.body)
 						try {
