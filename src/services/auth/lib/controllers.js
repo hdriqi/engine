@@ -54,6 +54,7 @@ module.exports = {
 					.then(async (hash)=>{
 						req.body.password = hash
 						req.body.validEmail = cred ? true : false
+						console.log(req.body)
 						try {
 							const user = await ctx.utils.db.insert(ctx, {
 								projectId: ctx.CORE_DB,
