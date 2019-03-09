@@ -238,11 +238,12 @@ module.exports = {
 				}
 
 				const newToken = await uidgen.generate()
-				let link = `/invitation-confirm?invite_token=${newToken}`
+				const mainUrl = `https://dullahan.evius.id`
+				let link = `${mainUrl}/invitation-confirm?invite_token=${newToken}`
 
 				// if user not exist
 				if(!user) {
-					link = `/register?invite_token=${newToken}`
+					link = `${mainUrl}/register?invite_token=${newToken}`
 				}
 
 				await ctx.utils.db.insert(ctx, {
