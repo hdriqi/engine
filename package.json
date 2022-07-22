@@ -48,7 +48,7 @@
     "express-bandwidth": "0.0.1",
     "express-subdomain": "^1.0.5",
     "express-transform": "^1.0.1",
-    "file-type": "^9.0.0",
+    "file-type": "^16.5.4",
     "generate-schema": "^2.6.0",
     "js-beautify": "^1.7.5",
     "jsonwebtoken": "^8.2.2",
